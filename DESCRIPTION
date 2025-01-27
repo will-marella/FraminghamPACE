@@ -1,0 +1,18 @@
+Type: Package
+Package: FraminghamPACE
+Title: FraminghamPACE
+Version: 0.0.1
+Authors@R: 
+	c(person(given = "William T.",
+			 family = "Marella", 
+			 email = "wm2530@cumc.columbia.edu", 
+			 role = c("aut", "cre", "ctb")))  
+Description: function returns FrqminghamPACE estimates for methylation data generated from either the Illumina 450K array or the Illumina EPIC array.
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+  preprocessCore
+RoxygenNote: 7.3.2
+Author: William T. Marella [aut, cre, ctb]
+Maintainer: William T. Marella <wm2530@cumc.columbia.edu>
