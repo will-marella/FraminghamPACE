@@ -7,14 +7,14 @@
 #' @return A list of string vectors.  Each element in the list is a different model, and the character vector contains the IDs needed for that particular model.
 #' @importFrom utils data
 #'
-globalVariables("Framingham_mPACE_models")
+globalVariables("FraminghamPACEa_model")
 
 getFraminghamPACEaProbes = function(backgroundList=F) {
-  data("FraminghamPACEa", package = "FraminghamPACE")
+  data("FraminghamPACEa_model", package = "FraminghamPACE")
   if( backgroundList == FALSE ) {
-    Framingham_mPACE_models$model_probes
+    FraminghamPACEa_model$model_probes
   } else {
-    Framingham_mPACE_models$gold_standard_probes
+    FraminghamPACEa_model$gold_standard_probes
   }
 }
 

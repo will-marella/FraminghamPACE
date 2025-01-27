@@ -4,16 +4,16 @@
 \alias{FraminghamPACEbProjector}
 \title{Generate the Framingham Methylation Pace of Aging Scores!}
 \arguments{
-\item{betas}{A numeric matrix containing the percent-methylation for each probe. Missing data should be 'NA's. Rows are probes (rownames), and columns are samples (colnames).}
+\item{betas}{A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.}
 
 \item{proportionOfProbesRequired}{(default: 0.8). Threshold for missing data. If EPICv2 data is detected, this is automatically lowered to 0.7.}
 }
 \value{
-A list of mPACE values, one for each mPACE model. Each element is a named vector of scores, equivalent to the pace of aging (in years) over a 1-year period.
+A list of FraminghamPACEb values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
 }
 \description{
 \code{FraminghamPACEbProjector} returns the FraminghamPACEb of Aging Methylation Scores
 }
 \details{
-Missing data is handled by imputing means for probes with missing values and setting NA for samples missing too much data. Probes missing entirely are imputed with the mean from the training dataset.
+This function returns the Framingham Methylation Pace of Aging scores for methylation data generated from either the Illumina 450K array or the Illumina EPIC array.  First, if a sample is missing data for more probes than the threshold, the sample will get an `NA` back for a score.  If a particular probe is missing fewer samples than the threshold, then missing data is set to the mean in the provided 'betas' matrix.  If a probe is missing more samples than the threshold, then all samples in the 'betas' matrix have their value replaced with the mean of the training data for that particular model.
 }

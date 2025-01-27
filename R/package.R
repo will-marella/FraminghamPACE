@@ -28,7 +28,7 @@
 #'   \item{female_weight}{Sex coefficient}
 #' }
 #' @source Framingham Heart Study
-"Framingham_mPACE_models"
+"FraminghamPACEa_model"
 
 #' No Covariates PACE Models Data
 #'
@@ -46,4 +46,4 @@
 #'   \item{model_intercept}{Model intercepts}
 #' }
 #' @source Framingham Heart Study
-"NoCov_mPACE_models"
+"FraminghamPACEb_model"
