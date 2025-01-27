@@ -12,6 +12,7 @@
 #' @importFrom utils data
 #' @export
 globalVariables("FraminghamPACEb_model")
+globalVariables(".validate_betas")
 
 
 FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {

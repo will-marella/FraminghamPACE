@@ -5,7 +5,7 @@
 #' @name FraminghamPACEaProjector
 #' @rdname FraminghamPACEaProjector
 #' @param betas A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
-#' @param age_sex_df a numeric dataframe containing the age and sex values for each sample. The name of the age column should be 'Age', where age is centered at 65, and the name of the sex column should be 'Female', where a 1 indicates the sample is female and 0 indicates the sample is male. The row names should indicate the sample, matching the column names of the `betas` matrix.
+#' @param age_sex_df a numeric dataframe containing the age and sex values for each sample. The name of the age column should be 'Age' and the name of the sex column should be 'Female', where a 1 indicates the sample is female and 0 indicates the sample is male. The row names should indicate the sample, matching the column names of the `betas` matrix.
 #' @param proportionOfProbesRequired (default: 0.8).  This value specifies the threshold for missing data (see description for more details on how missing data is handled). Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
 #' @return A list of FraminghamPACEa values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
 #' @details This function returns the Framingham Methylation Pace of Aging scores for methylation data generated from either the Illumina 450K array or the Illumina EPIC array.  First, if a sample is missing data for more probes than the threshold, the sample will get an `NA` back for a score.  If a particular probe is missing fewer samples than the threshold, then missing data is set to the mean in the provided 'betas' matrix.  If a probe is missing more samples than the threshold, then all samples in the 'betas' matrix have their value replaced with the mean of the training data for that particular model.
@@ -14,6 +14,7 @@
 #' @importFrom utils data
 #' @export
 globalVariables("FraminghamPACEa_model")
+globalVariables(c(".validate_betas", ".validate_age_sex"))
 
 
 FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequired=0.8 ) {
