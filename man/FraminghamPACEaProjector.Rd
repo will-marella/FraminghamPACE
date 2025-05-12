@@ -9,6 +9,8 @@
 \item{age_sex_df}{a numeric dataframe containing the age and sex values for each sample. The name of the age column should be 'Age' and the name of the sex column should be 'Female', where a 1 indicates the sample is female and 0 indicates the sample is male. The row names should indicate the sample, matching the column names of the `betas` matrix.}
 
 \item{proportionOfProbesRequired}{(default: 0.8).  This value specifies the threshold for missing data (see description for more details on how missing data is handled). Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.}
+
+\item{model_type}{(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.}
 }
 \value{
 A list of FraminghamPACEa values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
