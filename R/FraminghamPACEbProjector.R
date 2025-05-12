@@ -17,7 +17,7 @@ globalVariables("FraminghamPACEb_model_MSA")
 globalVariables(c(".validate_betas", ".validate_and_align_samples"))
 
 
-FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {
+FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8, model_type="default" ) {
   requireNamespace("preprocessCore")
   
   # Load the appropriate model based on model_type
