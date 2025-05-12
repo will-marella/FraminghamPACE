@@ -25,8 +25,10 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
   # Load the appropriate model based on model_type
   if (model_type == "default") {
     data("FraminghamPACEa_model", package = "FraminghamPACE")
+    model_data <- FraminghamPACEa_model
   } else if (model_type == "MSA") {
     data("FraminghamPACEa_model_MSA", package = "FraminghamPACE")
+    model_data <- FraminghamPACEa_model_MSA
   } else {
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
   }
@@ -63,11 +65,11 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
   }
   
   # loop through models
-  model_results <- lapply(FraminghamPACEa_model$model_names, function(model_name) {
+  model_results <- lapply(model_data$model_names, function(model_name) {
     # make sure it has been converted to a matrix
     if( !is.numeric(as.matrix(betas)) ) { stop("betas matrix/data.frame is not numeric!") }
-    probeOverlap <- length(which(rownames(betas) %in% FraminghamPACEa_model$model_probes[[model_name]])) / length(FraminghamPACEa_model$model_probes[[model_name]])
-    probeOverlap_background <- length(which(rownames(betas) %in% FraminghamPACEa_model$gold_standard_probes[[model_name]])) / length(FraminghamPACEa_model$gold_standard_probes[[model_name]])
+    probeOverlap <- length(which(rownames(betas) %in% model_data$model_probes[[model_name]])) / length(model_data$model_probes[[model_name]])
+    probeOverlap_background <- length(which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]])) / length(model_data$gold_standard_probes[[model_name]])
     # make sure enough of the probes are present in the data file
     if( probeOverlap < proportionOfProbesRequired | probeOverlap_background < proportionOfProbesRequired ) {
       result <- rep(NA, ncol(betas))
@@ -80,15 +82,15 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
       
     } else {
       # Work with a numeric matrix of betas
-      betas.mat <- as.matrix(betas[which(rownames(betas) %in% FraminghamPACEa_model$gold_standard_probes[[model_name]]),])
+      betas.mat <- as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),])
       # If probes don't exist, we'll add them as rows of values based on their mean in the gold standard dataset
-      probesNotInMatrix <- FraminghamPACEa_model$gold_standard_probes[[model_name]][which(FraminghamPACEa_model$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
+      probesNotInMatrix <- model_data$gold_standard_probes[[model_name]][which(model_data$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
       if( length(probesNotInMatrix) > 0 ) {
         for( probe in probesNotInMatrix ) {
           tmp.mat <- matrix(0, nrow=1, ncol=ncol(betas.mat))
           rownames(tmp.mat) <- probe
           colnames(tmp.mat) <- colnames(betas.mat)
-          tmp.mat[probe,] <- rep(FraminghamPACEa_model$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
+          tmp.mat[probe,] <- rep(model_data$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
           betas.mat <- rbind(betas.mat, tmp.mat)
         }
       }
@@ -117,19 +119,19 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
         if( length(which(pctValuesPresent < proportionOfProbesRequired)) > 0 ) {
           probesToReplaceWithMean <- rownames(betas.mat)[which(pctValuesPresent < proportionOfProbesRequired)]
           for( probe in probesToReplaceWithMean ) {
-            betas.mat[probe,] <- rep(FraminghamPACEa_model$model_means[[model_name]][probe], ncol(betas.mat))
+            betas.mat[probe,] <- rep(model_data$model_means[[model_name]][probe], ncol(betas.mat))
           }
         }
         
         # Normalize the matrix to the gold standard dataset
-        betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=FraminghamPACEa_model$gold_standard_means[[model_name]])
+        betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=model_data$gold_standard_means[[model_name]])
         rownames(betas.norm) <- rownames(betas.mat)
         colnames(betas.norm) <- colnames(betas.mat)
         # Calculate score:
-        score = FraminghamPACEa_model$model_intercept[[model_name]] + 
-          rowSums(t(betas.norm[FraminghamPACEa_model$model_probes[[model_name]],]) %*% diag(FraminghamPACEa_model$model_weights[[model_name]])) +
-          age_sex_df$Age * FraminghamPACEa_model$age_weight[[model_name]] +
-          age_sex_df$Female * FraminghamPACEa_model$female_weight[[model_name]]
+        score = model_data$model_intercept[[model_name]] + 
+          rowSums(t(betas.norm[model_data$model_probes[[model_name]],]) %*% diag(model_data$model_weights[[model_name]])) +
+          age_sex_df$Age * model_data$age_weight[[model_name]] +
+          age_sex_df$Female * model_data$female_weight[[model_name]]
         
         names(score) <- colnames(betas.norm)
         if( length(samplesToRemove) > 0 ) {
@@ -155,6 +157,6 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
       }
     }
   })
-  names(model_results) <- FraminghamPACEa_model$model_names
+  names(model_results) <- model_data$model_names
   return(model_results)
 }
