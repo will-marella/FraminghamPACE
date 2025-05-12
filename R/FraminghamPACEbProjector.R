@@ -14,7 +14,7 @@
 #' @export
 globalVariables("FraminghamPACEb_model")
 globalVariables("FraminghamPACEb_model_MSA")
-globalVariables(c(".validate_betas", ".validate_and_align_samples"))
+globalVariables(c(".validate_betas"))
 
 
 FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8, model_type="default" ) {

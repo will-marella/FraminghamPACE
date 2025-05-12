@@ -7,6 +7,8 @@
 \item{betas}{A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.}
 
 \item{proportionOfProbesRequired}{(default: 0.8). Threshold for missing data. If EPICv2 data is detected, this is automatically lowered to 0.7.}
+
+\item{model_type}{(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.}
 }
 \value{
 A list of FraminghamPACEb values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
