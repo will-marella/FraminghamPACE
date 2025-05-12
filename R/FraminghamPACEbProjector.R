@@ -6,18 +6,30 @@
 #' @rdname FraminghamPACEbProjector
 #' @param betas A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
 #' @param proportionOfProbesRequired (default: 0.8). Threshold for missing data. If EPICv2 data is detected, this is automatically lowered to 0.7.
+#' @param model_type (default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 #' @return A list of FraminghamPACEb values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
 #' @details This function returns the Framingham Methylation Pace of Aging scores for methylation data generated from either the Illumina 450K array or the Illumina EPIC array.  First, if a sample is missing data for more probes than the threshold, the sample will get an `NA` back for a score.  If a particular probe is missing fewer samples than the threshold, then missing data is set to the mean in the provided 'betas' matrix.  If a probe is missing more samples than the threshold, then all samples in the 'betas' matrix have their value replaced with the mean of the training data for that particular model.
 #' @importFrom preprocessCore normalize.quantiles.use.target
 #' @importFrom utils data
 #' @export
 globalVariables("FraminghamPACEb_model")
-globalVariables(".validate_betas")
+globalVariables("FraminghamPACEb_model_MSA")
+globalVariables(c(".validate_betas", ".validate_and_align_samples"))
 
 
 FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {
   requireNamespace("preprocessCore")
-  data("FraminghamPACEb_model", package = "FraminghamPACE")
+  
+  # Load the appropriate model based on model_type
+  if (model_type == "default") {
+    data("FraminghamPACEb_model", package = "FraminghamPACE")
+    model_data <- FraminghamPACEb_model
+  } else if (model_type == "MSA") {
+    data("FraminghamPACEb_model_MSA", package = "FraminghamPACE")
+    model_data <- FraminghamPACEb_model_MSA
+  } else {
+    stop("Invalid model_type. Options are 'default' or 'MSA'.")
+  }
   
   betas <- .validate_betas(betas)
 
@@ -43,11 +55,11 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {
   }
 
   # loop through models
-  model_results <- lapply(FraminghamPACEb_model$model_names, function(model_name) {
+  model_results <- lapply(model_data$model_names, function(model_name) {
     # make sure it has been converted to a matrix
     if( !is.numeric(as.matrix(betas)) ) { stop("betas matrix/data.frame is not numeric!") }
-    probeOverlap <- length(which(rownames(betas) %in% FraminghamPACEb_model$model_probes[[model_name]])) / length(FraminghamPACEb_model$model_probes[[model_name]])
-    probeOverlap_background <- length(which(rownames(betas) %in% FraminghamPACEb_model$gold_standard_probes[[model_name]])) / length(FraminghamPACEb_model$gold_standard_probes[[model_name]])
+    probeOverlap <- length(which(rownames(betas) %in% model_data$model_probes[[model_name]])) / length(model_data$model_probes[[model_name]])
+    probeOverlap_background <- length(which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]])) / length(model_data$gold_standard_probes[[model_name]])
     # make sure enough of the probes are present in the data file
     if( probeOverlap < proportionOfProbesRequired | probeOverlap_background < proportionOfProbesRequired ) {
       result <- rep(NA, ncol(betas))
@@ -60,15 +72,15 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {
       
     } else {
       # Work with a numeric matrix of betas
-      betas.mat <- as.matrix(betas[which(rownames(betas) %in% FraminghamPACEb_model$gold_standard_probes[[model_name]]),])
+      betas.mat <- as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),])
       # If probes don't exist, we'll add them as rows of values based on their mean in the gold standard dataset
-      probesNotInMatrix <- FraminghamPACEb_model$gold_standard_probes[[model_name]][which(FraminghamPACEb_model$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
+      probesNotInMatrix <- model_data$gold_standard_probes[[model_name]][which(model_data$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
       if( length(probesNotInMatrix) > 0 ) {
         for( probe in probesNotInMatrix ) {
           tmp.mat <- matrix(0, nrow=1, ncol=ncol(betas.mat))
           rownames(tmp.mat) <- probe
           colnames(tmp.mat) <- colnames(betas.mat)
-          tmp.mat[probe,] <- rep(FraminghamPACEb_model$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
+          tmp.mat[probe,] <- rep(model_data$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
           betas.mat <- rbind(betas.mat, tmp.mat)
         }
       }
@@ -97,16 +109,16 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {
         if( length(which(pctValuesPresent < proportionOfProbesRequired)) > 0 ) {
           probesToReplaceWithMean <- rownames(betas.mat)[which(pctValuesPresent < proportionOfProbesRequired)]
           for( probe in probesToReplaceWithMean ) {
-            betas.mat[probe,] <- rep(FraminghamPACEb_model$model_means[[model_name]][probe], ncol(betas.mat))
+            betas.mat[probe,] <- rep(model_data$model_means[[model_name]][probe], ncol(betas.mat))
           }
         }
 
         # Normalize the matrix to the gold standard dataset
-        betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=FraminghamPACEb_model$gold_standard_means[[model_name]])
+        betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=model_data$gold_standard_means[[model_name]])
         rownames(betas.norm) <- rownames(betas.mat)
         colnames(betas.norm) <- colnames(betas.mat)
         # Calculate score:
-        score = FraminghamPACEb_model$model_intercept[[model_name]] + rowSums(t(betas.norm[FraminghamPACEb_model$model_probes[[model_name]],]) %*% diag(FraminghamPACEb_model$model_weights[[model_name]]))
+        score = model_data$model_intercept[[model_name]] + rowSums(t(betas.norm[model_data$model_probes[[model_name]],]) %*% diag(model_data$model_weights[[model_name]]))
         names(score) <- colnames(betas.norm)
         if( length(samplesToRemove) > 0 ) {
           score.tmp <- rep(NA, length(samplesToRemove))
@@ -131,7 +143,7 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8 ) {
       }
     }
   })
-  names(model_results) <- FraminghamPACEb_model$model_names
+  names(model_results) <- model_data$model_names
   return(model_results)
 }
 
