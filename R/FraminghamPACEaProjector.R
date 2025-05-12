@@ -27,7 +27,7 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
     data("FraminghamPACEa_model", package = "FraminghamPACE")
     model_data <- FraminghamPACEa_model
   } else if (model_type == "MSA") {
-    data("FraminghamPACEa_model_MSA", package = "FraminghamPACE")
+    data("FraminghamPACEa_MSA_model", package = "FraminghamPACE")
     model_data <- FraminghamPACEa_model_MSA
   } else {
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
