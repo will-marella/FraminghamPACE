@@ -82,85 +82,94 @@ FraminghamPACEaProjector = function(betas, age_sex_df, proportionOfProbesRequire
     
     results$pace_score <- result
     results$normalized_betas <- NULL
-
     
-  } else {
-    # Work with a numeric matrix of betas
-    betas.mat <- as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),])
-    # If probes don't exist, we'll add them as rows of values based on their mean in the gold standard dataset
-    probesNotInMatrix <- model_data$gold_standard_probes[[model_name]][which(model_data$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
-    if( length(probesNotInMatrix) > 0 ) {
-      for( probe in probesNotInMatrix ) {
-        tmp.mat <- matrix(0, nrow=1, ncol=ncol(betas.mat))
-        rownames(tmp.mat) <- probe
-        colnames(tmp.mat) <- colnames(betas.mat)
-        tmp.mat[probe,] <- rep(model_data$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
-        betas.mat <- rbind(betas.mat, tmp.mat)
-      }
+    return(results)
+    
+  } 
+  
+  # Work with a numeric matrix of betas
+  betas.mat <- as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),])
+  
+  # If probes don't exist, we'll add them as rows of values based on their mean in the gold standard dataset
+  probesNotInMatrix <- model_data$gold_standard_probes[[model_name]][which(model_data$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
+  
+  if( length(probesNotInMatrix) > 0 ) {
+    for( probe in probesNotInMatrix ) {
+      tmp.mat <- matrix(0, nrow=1, ncol=ncol(betas.mat))
+      rownames(tmp.mat) <- probe
+      colnames(tmp.mat) <- colnames(betas.mat)
+      tmp.mat[probe,] <- rep(model_data$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
+      betas.mat <- rbind(betas.mat, tmp.mat)
     }
-    
-    # Identify samples with too many missing probes and remove them from the matrix
-    samplesToRemove <- colnames(betas.mat)[which(apply(betas.mat, 2, function(x) { 1 - ( length(which(is.na(x))) / length(x) ) < proportionOfProbesRequired}))]
-    if( length(samplesToRemove) > 0 ) {
-      betas.mat <- betas.mat[,-which(colnames(betas.mat) %in% samplesToRemove)]
-    }
-    
-    if(ncol(betas.mat) > 0) {
-      # Identify missingness on a probe level
-      pctValuesPresent <- apply( betas.mat, 1, function(x) { 1 - (length(which(is.na(x))) / length(x)) } )
-      # If they're missing values, but less than the proportion required, we impute to the cohort mean
-      probesToAdjust <- which(pctValuesPresent < 1 & pctValuesPresent >= proportionOfProbesRequired)
-      if( length(probesToAdjust) > 0 ) {
-        if( length(probesToAdjust) > 1 ) {
-          betas.mat[probesToAdjust,] <- t(apply( betas.mat[probesToAdjust,], 1 , function(x) {
-            x[is.na(x)] = mean( x, na.rm = TRUE )
-            x
-          }))
-        } else {
-          betas.mat[probesToAdjust,which(is.na(betas.mat[probesToAdjust,]))] <- mean(betas.mat[probesToAdjust,], na.rm=T)
-        }
-      }
-      # If they're missing too many values, everyones value gets replaced with the mean from the Framingham cohort
-      if( length(which(pctValuesPresent < proportionOfProbesRequired)) > 0 ) {
-        probesToReplaceWithMean <- rownames(betas.mat)[which(pctValuesPresent < proportionOfProbesRequired)]
-        for( probe in probesToReplaceWithMean ) {
-          betas.mat[probe,] <- rep(model_data$model_means[[model_name]][probe], ncol(betas.mat))
-        }
-      }
-      
-      # Normalize the matrix to the gold standard dataset
-      betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=model_data$gold_standard_means[[model_name]])
-      rownames(betas.norm) <- rownames(betas.mat)
-      colnames(betas.norm) <- colnames(betas.mat)
-      
-      # Calculate score:
-      score = model_data$model_intercept[[model_name]] + 
-        rowSums(t(betas.norm[model_data$model_probes[[model_name]],]) %*% diag(model_data$model_weights[[model_name]])) +
-        age_sex_df$Age * model_data$age_weight[[model_name]] +
-        age_sex_df$Female * model_data$female_weight[[model_name]]
-      
-      names(score) <- colnames(betas.norm)
-      
-      if( length(samplesToRemove) > 0 ) {
-        score.tmp <- rep(NA, length(samplesToRemove))
-        names(score.tmp) <- samplesToRemove
-        score <- c(score, score.tmp)
-      }
-      
-      score <- score[colnames(betas)]
-      
-      results$pace_score <- score
-      results$normalized_betas <- betas.norm
-      
-    } else {
-      result <- rep(NA, ncol(betas.mat))
-      names(result) <- colnames(betas.mat)
-      
-      results$pace_score <- result
-      results$normalized_betas <- NULL
-    }
-    
   }
+  
+  # Identify samples with too many missing probes and remove them from the matrix
+  samplesToRemove <- colnames(betas.mat)[which(apply(betas.mat, 2, function(x) { 1 - ( length(which(is.na(x))) / length(x) ) < proportionOfProbesRequired}))]
+  if( length(samplesToRemove) > 0 ) {
+    betas.mat <- betas.mat[,-which(colnames(betas.mat) %in% samplesToRemove)]
+  }
+  
+  if(ncol(betas.mat) == 0) {
+    # Early return for empty matrix case
+    result <- rep(NA, ncol(betas.mat))
+    names(result) <- colnames(betas.mat)
+    
+    results$pace_score <- result
+    results$normalized_betas <- NULL
+    return(results)
+  }
+
+  # Identify missingness on a probe level
+  pctValuesPresent <- apply( betas.mat, 1, function(x) { 1 - (length(which(is.na(x))) / length(x)) } )
+  
+  # If they're missing values, but less than the proportion required, we impute to the cohort mean
+  probesToAdjust <- which(pctValuesPresent < 1 & pctValuesPresent >= proportionOfProbesRequired)
+  
+  # Case 1: Multiple probes to adjust
+  if( length(probesToAdjust) > 1 ) {
+    betas.mat[probesToAdjust,] <- t(apply( betas.mat[probesToAdjust,], 1 , function(x) {
+      x[is.na(x)] = mean( x, na.rm = TRUE )
+      x
+    }))
+  }
+  
+  # Case 2: Exactly one probe to adjust
+  if(length(probesToAdjust) == 1) {
+    betas.mat[probesToAdjust,which(is.na(betas.mat[probesToAdjust,]))] <- mean(betas.mat[probesToAdjust,], na.rm=T)
+  }
+  
+  # If they're missing too many values, everyones value gets replaced with the mean from the Framingham cohort
+  if( length(which(pctValuesPresent < proportionOfProbesRequired)) > 0 ) {
+    probesToReplaceWithMean <- rownames(betas.mat)[which(pctValuesPresent < proportionOfProbesRequired)]
+    for( probe in probesToReplaceWithMean ) {
+      betas.mat[probe,] <- rep(model_data$model_means[[model_name]][probe], ncol(betas.mat))
+    }
+  }
+  
+  # Normalize the matrix to the gold standard dataset
+  betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=model_data$gold_standard_means[[model_name]])
+  rownames(betas.norm) <- rownames(betas.mat)
+  colnames(betas.norm) <- colnames(betas.mat)
+  
+  # Calculate score:
+  score = model_data$model_intercept[[model_name]] + 
+    rowSums(t(betas.norm[model_data$model_probes[[model_name]],]) %*% diag(model_data$model_weights[[model_name]])) +
+    age_sex_df$Age * model_data$age_weight[[model_name]] +
+    age_sex_df$Female * model_data$female_weight[[model_name]]
+  
+  names(score) <- colnames(betas.norm)
+  
+  if( length(samplesToRemove) > 0 ) {
+    score.tmp <- rep(NA, length(samplesToRemove))
+    names(score.tmp) <- samplesToRemove
+    score <- c(score, score.tmp)
+  }
+  
+  score <- score[colnames(betas)]
+  
+  results$pace_score <- score
+  results$normalized_betas <- betas.norm
+    
     
   return(results)
 }
