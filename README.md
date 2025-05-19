@@ -71,8 +71,8 @@ FraminghamPACEb <- FraminghamPACEaProjector(betas = my_betas,
 # NOTE: If your dataset is MSA, use model_type = "MSA"
 
 # To unpack the vector of estimates:
-FraminghamPACEa_vector <- FraminghamPACEa$FraminghamPACEa$pace_score
-FraminghamPACEb_vector <- FraminghamPACEb$FraminghamPACEb$pace_score
+FraminghamPACEa_vector <- FraminghamPACEa$pace_score
+FraminghamPACEb_vector <- FraminghamPACEb$pace_score
 
 ```
 
