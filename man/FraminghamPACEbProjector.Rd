@@ -9,9 +9,11 @@
 \item{proportionOfProbesRequired}{(default: 0.8). Threshold for missing data. If EPICv2 data is detected, this is automatically lowered to 0.7.}
 
 \item{model_type}{(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.}
+
+\item{return_normalized_betas}{(default: FALSE). If FALSE, returns a dataframe of FraminghamPACEb values. If TRUE, returns a list containing both the dataframe of FraminghamPACEb values and the normalized beta matrix.}
 }
 \value{
-A list of FraminghamPACEb values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
+By default, a dataframe of FraminghamPACEb values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace_score dataframe and the normalized_betas matrix.
 }
 \description{
 \code{FraminghamPACEbProjector} returns the FraminghamPACEb of Aging Methylation Scores
