@@ -7,7 +7,8 @@
 #' @param betas A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
 #' @param proportionOfProbesRequired (default: 0.8). Threshold for missing data. If EPICv2 data is detected, this is automatically lowered to 0.7.
 #' @param model_type (default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
-#' @return A list of FraminghamPACEb values.  The names of the values in the vector will be the sample names from the 'betas' matrix. The output is equivalent to the pace of aging (in years) expected over a 1-year period.
+#' @param return_normalized_betas (default: FALSE). If FALSE, returns a dataframe of FraminghamPACEb values. If TRUE, returns a list containing both the dataframe of FraminghamPACEb values and the normalized beta matrix.
+#' @return By default, a dataframe of FraminghamPACEb values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace_score dataframe and the normalized_betas matrix.
 #' @details This function returns the Framingham Methylation Pace of Aging scores for methylation data generated from either the Illumina 450K array or the Illumina EPIC array.  First, if a sample is missing data for more probes than the threshold, the sample will get an `NA` back for a score.  If a particular probe is missing fewer samples than the threshold, then missing data is set to the mean in the provided 'betas' matrix.  If a probe is missing more samples than the threshold, then all samples in the 'betas' matrix have their value replaced with the mean of the training data for that particular model.
 #' @importFrom preprocessCore normalize.quantiles.use.target
 #' @importFrom utils data
@@ -17,7 +18,9 @@ globalVariables("FraminghamPACEb_model_MSA")
 globalVariables(c(".validate_betas"))
 
 
-FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8, model_type="default" ) {
+FraminghamPACEbProjector = function( betas, 
+                                     proportionOfProbesRequired=0.8, model_type="default",
+                                     return_normalized_betas = FALSE) {
   requireNamespace("preprocessCore")
   
   # Load the appropriate model based on model_type
@@ -63,16 +66,24 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8, mode
   probeOverlap_background <- length(which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]])) / 
     length(model_data$gold_standard_probes[[model_name]])
   
-  results <- list()
-  
   if( probeOverlap < proportionOfProbesRequired | probeOverlap_background < proportionOfProbesRequired ) {
     result <- rep(NA, ncol(betas))
     names(result) <- colnames(betas)
     
-    results$pace_score <- result
-    results$normalized_betas <- NULL
+    pace_result <- data.frame(result)
+    colnames(pace_result) <- model_name
+    rownames(pace_result) <- colnames(betas)
     
-    return(results)
+    cat("WARNING: Insufficient number of probes present in the data file\n")
+    
+    if(return_normalized_betas) {
+      return(list(
+        pace_score = pace_result,
+        normalized_betas = NULL
+      ))
+    } else {
+      return(pace_result)
+    }
     
   }
   
@@ -99,13 +110,23 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8, mode
   }
   
   if(ncol(betas.mat) == 0) {
-    # Early return for empty matrix case
-    result <- rep(NA, ncol(betas.mat))
-    names(result) <- colnames(betas.mat)
+    result <- rep(NA, ncol(betas))
+    names(result) <- colnames(betas)
     
-    results$pace_score <- result
-    results$normalized_betas <- NULL
-    return(results)
+    pace_result <- data.frame(result)
+    colnames(pace_result) <- model_name
+    rownames(pace_result) <- colnames(betas)
+    
+    cat("WARNING: Empty beta matrix after removing samples with excessive missingness\n")
+    
+    if(return_normalized_betas) {
+      return(list(
+        pace_score = pace_result,
+        normalized_betas = NULL
+      ))
+    } else {
+      return(pace_result)
+    }
   }
   
   # Identify missingness on a probe level
@@ -155,9 +176,16 @@ FraminghamPACEbProjector = function( betas, proportionOfProbesRequired=0.8, mode
   
   score <- score[colnames(betas)]
   
-  results$pace_score <- score
-  results$normalized_betas <- betas.norm
+  pace_result <- data.frame(score)
+  colnames(pace_result) <- model_name
   
-  return(results)
+  if(return_normalized_betas) {
+    return(list(
+      pace_score = pace_result,
+      normalized_betas = betas.norm
+    ))
+  } else {
+    return(pace_result)
+  }
   
 }
