@@ -9,7 +9,7 @@
 \item{model_type}{(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.}
 }
 \value{
-A list of string vectors.  Each element in the list is a different model, and the character vector contains the IDs needed for that particular model.
+A character vector containing the requested CpGs.
 }
 \description{
 \code{getFraminghamPACEaProbes} returns a list containing the IDs of the probes needed for the FraminghamPACEa Model.

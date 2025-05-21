@@ -33,7 +33,7 @@ A numeric dataframe containing the age and sex values for each sample. The name 
 (default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 
 #### Output:
-A list including the vector of FraminghamPACEa estimates and the normalized betas. See example below for a clearer explanation of how to unpack the estimates.
+By default, a dataframe of FraminghamPACEa values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace value dataframe and the normalized_betas matrix.
 
 ## FraminghamPACEbProjector():
 
@@ -49,7 +49,7 @@ A numeric matrix containing the percent-methylation for each probe. Missing data
 (default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 
 #### Output:
-A list including the vector of FraminghamPACEb estimates and the normalized betas. See example below for a clearer explanation of how to unpack the estimates.
+By default, a dataframe of FraminghamPACEb values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace value dataframe and the normalized_betas matrix.
 
 ## Example Usage
 ```r
@@ -70,9 +70,30 @@ FraminghamPACEb <- FraminghamPACEaProjector(betas = my_betas,
                                             
 # NOTE: If your dataset is MSA, use model_type = "MSA"
 
-# To unpack the vector of estimates:
-FraminghamPACEa_vector <- FraminghamPACEa$pace_score
-FraminghamPACEb_vector <- FraminghamPACEb$pace_score
-
 ```
 
+## getFraminghamPACEaProbes():
+
+#### Inputs:
+
+###### backgroundList
+(default: FALSE). If set to TRUE, it will return the full set of ~20,000 probes (~10,000 if MSA is selected) in the background set used for normalization.
+
+###### model_type:
+(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
+
+#### Output:
+A vector of the CpGs used for FraminghamPACEa predictions. Or, if backgroundList is set to true, a vector of the CpGs in the background set used for normalization.
+
+## getFraminghamPACEbProbes():
+
+#### Inputs:
+
+###### backgroundList
+(default: FALSE). If set to TRUE, it will return the full set of ~20,000 probes (~10,000 if MSA is selected) in the background set used for normalization.
+
+###### model_type:
+(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
+
+#### Output:
+A vector of the CpGs used for FraminghamPACEb predictions. Or, if backgroundList is set to true, a vector of the CpGs in the background set used for normalization.
