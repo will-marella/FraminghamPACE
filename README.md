@@ -16,6 +16,8 @@ The primary functions in the FraminghamPACE package are the PACEProjector functi
 
 The PACEProjector functions calculate FraminghamPACE for the provided dataset. We recommend loading a beta matrix containing *all available* CpGs. For MSA array data, the "MSA" option must be selected via the `model_type` argument.
 
+If it is preferred to load only the probes used for model fitting or background normalization, the CpGs are accessible via the `getFraminghamPACEaProbes()` and `getFraminghamPACEbProbes()` functions.
+
 ## FraminghamPACEaProjector():
 
 #### Inputs:
