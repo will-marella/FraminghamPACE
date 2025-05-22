@@ -378,11 +378,15 @@ PACEProjector functions. There are two PACEProjectors:
 <code>FraminghamPACEaProjector()</code> and
 <code>FraminghamPACEbProjector()</code> for FraminghamPACEa and b,
 respectively. Helper windows are available for all functions via
-<code>?</code>, i.e. <code>?FraminghamPACEaProjector</code></p>
+<code>?</code>, i.e. <code>?FraminghamPACEaProjector</code>.</p>
 <p>The PACEProjector functions calculate FraminghamPACE for the provided
 dataset. We recommend loading a beta matrix containing <em>all
 available</em> CpGs. For MSA array data, the “MSA” option must be
 selected via the <code>model_type</code> argument.</p>
+<p>If it is preferred to load only the probes used for model fitting or
+background normalization, the CpGs are accessible via the
+<code>getFraminghamPACEaProbes()</code> and
+<code>getFraminghamPACEbProbes()</code> functions.</p>
 </div>
 <div id="framinghampaceaprojector" class="section level2">
 <h2>FraminghamPACEaProjector():</h2>
@@ -392,8 +396,8 @@ selected via the <code>model_type</code> argument.</p>
 <h6>betas</h6>
 <p>A numeric matrix containing the percent-methylation for each probe.
 Missing data should be ’NA’s. The rows should be probes, with the probe
-ID as the row name, and the columns should be samples, with sample names
-as the column name.</p>
+IDs as the row names, and the columns should be samples, with sample
+names as the column names.</p>
 </div>
 <div id="age_sex_df" class="section level6">
 <h6>age_sex_df</h6>
@@ -405,23 +409,23 @@ sample, matching the column names of the ‘betas’ matrix.</p>
 </div>
 <div id="proportionofprobesrequired" class="section level6">
 <h6>proportionOfProbesRequired:</h6>
-<p>(default: 0.8). This value specifies the threshold for missing data
-(see description for more details on how missing data is handled). Note:
-if the function detects EPICv2 data based on row names that contain the
+<p>(default: 0.8) The proportion of probes required to have a
+non-missing value for FraminghamPACE for a sample, as well as to
+determine if we can impute the mean from the current cohort. Note: if
+the function detects EPICv2 data based on row names that contain the
 replicate suffix, the proportion of probes required will automatically
 be lowered to 0.7.</p>
 </div>
 <div id="model_type" class="section level6">
 <h6>model_type:</h6>
-<p>(default: “default”). Choose which model to use. Options are
-“default” for the original model or “MSA” for the alternative MSA
-model.</p>
+<p>(default: “default”) Choose which model to use. Options are “default”
+for the original model or “MSA” for the alternative MSA model.</p>
 </div>
 </div>
 <div id="output" class="section level4">
 <h4>Output:</h4>
 <p>By default, a dataframe of FraminghamPACEa values with sample names
-as row names and the model name as column name. If
+as row names and the model name as the column name. If
 return_normalized_betas=TRUE, a list containing both the pace value
 dataframe and the normalized_betas matrix.</p>
 </div>
@@ -434,28 +438,28 @@ dataframe and the normalized_betas matrix.</p>
 <h6>betas</h6>
 <p>A numeric matrix containing the percent-methylation for each probe.
 Missing data should be ’NA’s. The rows should be probes, with the probe
-ID as the row name, and the columns should be samples, with sample names
-as the column name.</p>
+IDs as the row names, and the columns should be samples, with sample
+names as the column names.</p>
 </div>
 <div id="proportionofprobesrequired-1" class="section level6">
 <h6>proportionOfProbesRequired:</h6>
-<p>(default: 0.8). This value specifies the threshold for missing data
-(see description for more details on how missing data is handled). Note:
-if the function detects EPICv2 data based on row names that contain the
+<p>(default: 0.8) The proportion of probes required to have a
+non-missing value for FraminghamPACE for a sample, as well as to
+determine if we can impute the mean from the current cohort. Note: if
+the function detects EPICv2 data based on row names that contain the
 replicate suffix, the proportion of probes required will automatically
 be lowered to 0.7.</p>
 </div>
 <div id="model_type-1" class="section level6">
 <h6>model_type:</h6>
-<p>(default: “default”). Choose which model to use. Options are
-“default” for the original model or “MSA” for the alternative MSA
-model.</p>
+<p>(default: “default”) Choose which model to use. Options are “default”
+for the original model or “MSA” for the alternative MSA model.</p>
 </div>
 </div>
 <div id="output-1" class="section level4">
 <h4>Output:</h4>
 <p>By default, a dataframe of FraminghamPACEb values with sample names
-as row names and the model name as column name. If
+as row names and the model name as the column name. If
 return_normalized_betas=TRUE, a list containing both the pace value
 dataframe and the normalized_betas matrix.</p>
 </div>
@@ -474,7 +478,7 @@ FraminghamPACEa &lt;- FraminghamPACEaProjector(betas = my_betas,
                                             model_type = &quot;default&quot;)
 
 # Run FraminghamPACEb
-FraminghamPACEb &lt;- FraminghamPACEaProjector(betas = my_betas, 
+FraminghamPACEb &lt;- FraminghamPACEbProjector(betas = my_betas, 
                                             model_type = &quot;default&quot;)
                                             
 # NOTE: If your dataset is MSA, use model_type = &quot;MSA&quot;
@@ -486,15 +490,14 @@ FraminghamPACEb &lt;- FraminghamPACEaProjector(betas = my_betas,
 <h4>Inputs:</h4>
 <div id="backgroundlist" class="section level6">
 <h6>backgroundList</h6>
-<p>(default: FALSE). If set to TRUE, it will return the full set of
+<p>(default: FALSE) If set to TRUE, it will return the full set of
 ~20,000 probes (~10,000 if MSA is selected) in the background set used
 for normalization.</p>
 </div>
 <div id="model_type-2" class="section level6">
 <h6>model_type:</h6>
-<p>(default: “default”). Choose which model to use. Options are
-“default” for the original model or “MSA” for the alternative MSA
-model.</p>
+<p>(default: “default”) Choose which model to use. Options are “default”
+for the original model or “MSA” for the alternative MSA model.</p>
 </div>
 </div>
 <div id="output-2" class="section level4">
@@ -510,15 +513,14 @@ set used for normalization.</p>
 <h4>Inputs:</h4>
 <div id="backgroundlist-1" class="section level6">
 <h6>backgroundList</h6>
-<p>(default: FALSE). If set to TRUE, it will return the full set of
+<p>(default: FALSE) If set to TRUE, it will return the full set of
 ~20,000 probes (~10,000 if MSA is selected) in the background set used
 for normalization.</p>
 </div>
 <div id="model_type-3" class="section level6">
 <h6>model_type:</h6>
-<p>(default: “default”). Choose which model to use. Options are
-“default” for the original model or “MSA” for the alternative MSA
-model.</p>
+<p>(default: “default”) Choose which model to use. Options are “default”
+for the original model or “MSA” for the alternative MSA model.</p>
 </div>
 </div>
 <div id="output-3" class="section level4">

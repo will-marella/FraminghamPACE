@@ -12,7 +12,7 @@ library(FraminghamPACE)
 ```
 
 ## Use
-The primary functions in the FraminghamPACE package are the PACEProjector functions. There are two PACEProjectors: `FraminghamPACEaProjector()` and `FraminghamPACEbProjector()` for FraminghamPACEa and b, respectively. Helper windows are available for all functions via `?`, i.e. `?FraminghamPACEaProjector`
+The primary functions in the FraminghamPACE package are the PACEProjector functions. There are two PACEProjectors: `FraminghamPACEaProjector()` and `FraminghamPACEbProjector()` for FraminghamPACEa and b, respectively. Helper windows are available for all functions via `?`, i.e. `?FraminghamPACEaProjector`.
 
 The PACEProjector functions calculate FraminghamPACE for the provided dataset. We recommend loading a beta matrix containing *all available* CpGs. For MSA array data, the "MSA" option must be selected via the `model_type` argument.
 
@@ -23,35 +23,35 @@ If it is preferred to load only the probes used for model fitting or background 
 #### Inputs:
 
 ###### betas
-A numeric matrix containing the percent-methylation for each probe. Missing data should be 'NA's. The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
+A numeric matrix containing the percent-methylation for each probe. Missing data should be 'NA's. The rows should be probes, with the probe IDs as the row names, and the columns should be samples, with sample names as the column names.
 
 ###### age_sex_df
-A numeric dataframe containing the age and sex values for each sample. The name of the age column should be 'Age' and the name of the sex column should be 'Female', where a 1 indicates the sample is female and 0 indicates the sample is male. The row names should indicate the sample, matching the column names of the 'betas' matrix.
+A numeric dataframe containing the age and sex values for each sample. The name of the age column should be 'Age' and the name of the sex column should be 'Female', where 1 indicates the sample is female and 0 indicates the sample is male. The row names should indicate the sample, matching the column names of the 'betas' matrix.
 
 ###### proportionOfProbesRequired:
-(default: 0.8). This value specifies the threshold for missing data (see description for more details on how missing data is handled). Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
+(default: 0.8) The proportion of probes required to have a non-missing value for FraminghamPACE for a sample, as well as to determine if we can impute the mean from the current cohort. Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
 
 ###### model_type:
-(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
+(default: "default") Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 
 #### Output:
-By default, a dataframe of FraminghamPACEa values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace value dataframe and the normalized_betas matrix.
+By default, a dataframe of FraminghamPACEa values with sample names as row names and the model name as the column name. If return_normalized_betas=TRUE, a list containing both the pace value dataframe and the normalized_betas matrix.
 
 ## FraminghamPACEbProjector():
 
 #### Inputs:
 
 ###### betas
-A numeric matrix containing the percent-methylation for each probe. Missing data should be 'NA's. The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
+A numeric matrix containing the percent-methylation for each probe. Missing data should be 'NA's. The rows should be probes, with the probe IDs as the row names, and the columns should be samples, with sample names as the column names.
 
 ###### proportionOfProbesRequired:
-(default: 0.8). This value specifies the threshold for missing data (see description for more details on how missing data is handled). Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
+(default: 0.8) The proportion of probes required to have a non-missing value for FraminghamPACE for a sample, as well as to determine if we can impute the mean from the current cohort. Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
 
 ###### model_type:
-(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
+(default: "default") Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 
 #### Output:
-By default, a dataframe of FraminghamPACEb values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace value dataframe and the normalized_betas matrix.
+By default, a dataframe of FraminghamPACEb values with sample names as row names and the model name as the column name. If return_normalized_betas=TRUE, a list containing both the pace value dataframe and the normalized_betas matrix.
 
 ## Example Usage
 ```r
@@ -79,10 +79,10 @@ FraminghamPACEb <- FraminghamPACEbProjector(betas = my_betas,
 #### Inputs:
 
 ###### backgroundList
-(default: FALSE). If set to TRUE, it will return the full set of ~20,000 probes (~10,000 if MSA is selected) in the background set used for normalization.
+(default: FALSE) If set to TRUE, it will return the full set of ~20,000 probes (~10,000 if MSA is selected) in the background set used for normalization.
 
 ###### model_type:
-(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
+(default: "default") Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 
 #### Output:
 A vector of the CpGs used for FraminghamPACEa predictions. Or, if backgroundList is set to true, a vector of the CpGs in the background set used for normalization.
@@ -92,10 +92,10 @@ A vector of the CpGs used for FraminghamPACEa predictions. Or, if backgroundList
 #### Inputs:
 
 ###### backgroundList
-(default: FALSE). If set to TRUE, it will return the full set of ~20,000 probes (~10,000 if MSA is selected) in the background set used for normalization.
+(default: FALSE) If set to TRUE, it will return the full set of ~20,000 probes (~10,000 if MSA is selected) in the background set used for normalization.
 
 ###### model_type:
-(default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
+(default: "default") Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 
 #### Output:
 A vector of the CpGs used for FraminghamPACEb predictions. Or, if backgroundList is set to true, a vector of the CpGs in the background set used for normalization.
