@@ -67,7 +67,7 @@ FraminghamPACEa <- FraminghamPACEaProjector(betas = my_betas,
                                             model_type = "default")
 
 # Run FraminghamPACEb
-FraminghamPACEb <- FraminghamPACEaProjector(betas = my_betas, 
+FraminghamPACEb <- FraminghamPACEbProjector(betas = my_betas, 
                                             model_type = "default")
                                             
 # NOTE: If your dataset is MSA, use model_type = "MSA"
