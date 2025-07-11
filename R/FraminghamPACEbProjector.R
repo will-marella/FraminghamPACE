@@ -15,6 +15,7 @@
 #' @export
 globalVariables("FraminghamPACEb_model")
 globalVariables("FraminghamPACEb_model_MSA")
+globalVariables("FraminghamPACEbs_model_TruDx")
 globalVariables(c(".validate_betas"))
 
 
@@ -30,6 +31,9 @@ FraminghamPACEbProjector = function( betas,
   } else if (model_type == "MSA") {
     data("FraminghamPACEb_model_MSA", package = "FraminghamPACE")
     model_data <- FraminghamPACEb_model_MSA
+  } else if (model_type == "TruDx") {
+    data("FraminghamPACEbs_model_TruDx", package = "FraminghamPACE")
+    model_data <- FraminghamPACEbs_model_TruDx
   } else {
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
   }

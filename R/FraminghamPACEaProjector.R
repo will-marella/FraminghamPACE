@@ -17,6 +17,7 @@
 #' @export
 globalVariables("FraminghamPACEa_model")
 globalVariables("FraminghamPACEa_model_MSA")
+globalVariables("FraminghamPACEas_model_TruDx")
 globalVariables(c(".validate_betas", ".validate_age_sex", ".validate_and_align_samples"))
 
 
@@ -32,6 +33,9 @@ FraminghamPACEaProjector = function(betas, age_sex_df,
   } else if (model_type == "MSA") {
     data("FraminghamPACEa_model_MSA", package = "FraminghamPACE")
     model_data <- FraminghamPACEa_model_MSA
+  } else if (model_type == "TruDx") {
+    data("FraminghamPACEas_model_TruDx", package = "FraminghamPACE")
+    model_data <- FraminghamPACEas_model_TruDx
   } else {
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
   }
