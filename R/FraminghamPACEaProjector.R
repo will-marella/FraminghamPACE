@@ -51,6 +51,7 @@ FraminghamPACEaProjector = function(betas, age_sex_df,
   
   ################################################################
   ### TEMPORARY ADDITION TO ATTEMPT AN AGE/SEX-INDEPENDENT SCORE
+  print("Temporarily removing age/sex information.")
   age_sex_df$Age <- 0
   age_sex_df$Female <- 0.5
   ################################################################
