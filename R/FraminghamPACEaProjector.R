@@ -49,6 +49,12 @@ FraminghamPACEaProjector = function(betas, age_sex_df,
   betas <- aligned_data$betas
   age_sex_df <- aligned_data$age_sex_df
   
+  ################################################################
+  ### TEMPORARY ADDITION TO ATTEMPT AN AGE/SEX-INDEPENDENT SCORE
+  age_sex_df$Age <- 0
+  age_sex_df$Female <- 0.5
+  ################################################################
+  
   
   if( any(grepl("TC|BC", rownames(betas))) )
   {
