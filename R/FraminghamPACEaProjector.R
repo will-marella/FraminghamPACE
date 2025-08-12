@@ -19,6 +19,8 @@ globalVariables("FraminghamPACEa_model")
 globalVariables("FraminghamPACEa_model_MSA")
 globalVariables("FraminghamPACEas_model_TruDx")
 globalVariables("FraminghamPACEas_model_TruDx_Ensemb")
+globalVariables("FraminghamPACEas_model_TruDx_Ensemb_RIDGE_TEST")
+globalVariables("FraminghamPACEas_model_TruDx_MINUS7_TEST")
 globalVariables(c(".validate_betas", ".validate_age_sex", ".validate_and_align_samples"))
 
 
@@ -40,6 +42,12 @@ FraminghamPACEaProjector = function(betas, age_sex_df,
   } else if (model_type == "TruDx_Ensemb") {
     data("FraminghamPACEas_model_TruDx_Ensemb", package = "FraminghamPACE")
     model_data <- FraminghamPACEas_model_TruDx_Ensemb
+  } else if (model_type == "RIDGE") {
+    data("FraminghamPACEas_model_TruDx_Ensemb_RIDGE_TEST", package = "FraminghamPACE")
+    model_data <- FraminghamPACEas_model_TruDx_Ensemb_RIDGE_TEST
+  } else if (model_type == "MINUS7") {
+    data("FraminghamPACEas_model_TruDx_MINUS7_TEST", package = "FraminghamPACE")
+    model_data <- FraminghamPACEas_model_TruDx_MINUS7_TEST
   } else {
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
   }
