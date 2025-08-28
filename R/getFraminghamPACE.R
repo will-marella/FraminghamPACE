@@ -1,3 +1,5 @@
+#' @export
+
 globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 
 getFraminghamPACE <- function(betas, model_type = "default") {
