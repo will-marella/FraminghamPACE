@@ -1,11 +1,10 @@
 #' Generate the Framingham Methylation Pace of Aging Scores!
 #'
-#' \code{FraminghamPACEaProjector} calculates and returns FraminghamPACEa scores from an individual’s methylation array, age, and sex.
+#' \code{FraminghamPACEaProjector} calculates and returns FraminghamPACEa scores from an individual’s methylation array data.
 #'
 #' @name FraminghamPACEaProjector
 #' @rdname FraminghamPACEaProjector
 #' @param betas A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
-#' @param age_sex_df a numeric dataframe containing the age and sex values for each sample. The name of the age column should be 'Age' and the name of the sex column should be 'Female', where a 1 indicates the sample is female and 0 indicates the sample is male. The row names should indicate the sample, matching the column names of the `betas` matrix.
 #' @param proportionOfProbesRequired (default: 0.8).  This value specifies the threshold for missing data (see description for more details on how missing data is handled). Note: if the function detects EPICv2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
 #' @param model_type (default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
 #' @param return_normalized_betas (default: FALSE). If FALSE, returns a dataframe of FraminghamPACEa values. If TRUE, returns a list containing both the dataframe of FraminghamPACEa values and the normalized beta matrix.
@@ -17,11 +16,12 @@
 #' @export
 globalVariables("FraminghamPACEa_RIDGE")
 globalVariables("FraminghamPACEa_ENET")
-globalVariables(c(".validate_betas", ".validate_age_sex", ".validate_and_align_samples"))
+globalVariables(c(".validate_betas"))
 
 
-FraminghamPACEaProjector = function(betas, age_sex_df, 
-                                    proportionOfProbesRequired=0.8, model_type="RIDGE",
+FraminghamPACEaProjector = function(betas, 
+                                    proportionOfProbesRequired=0.8, 
+                                    model_type="RIDGE",
                                     return_normalized_betas = FALSE) {
   requireNamespace("preprocessCore")
   
@@ -36,22 +36,8 @@ FraminghamPACEaProjector = function(betas, age_sex_df,
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
   }
   
-  # Individual validation of inputs
+  # Validate betas
   betas <- .validate_betas(betas)
-  age_sex_df <- .validate_age_sex(age_sex_df, colnames(betas))
-  
-  # Align samples between betas and age_sex_df
-  aligned_data <- .validate_and_align_samples(betas, age_sex_df)
-  betas <- aligned_data$betas
-  age_sex_df <- aligned_data$age_sex_df
-  
-  ################################################################
-  ### TEMPORARY ADDITION TO ATTEMPT AN AGE/SEX-INDEPENDENT SCORE
-  print("Temporarily removing age/sex information.")
-  age_sex_df$Age <- 0
-  age_sex_df$Female <- 0.5
-  ################################################################
-  
   
   if( any(grepl("TC|BC", rownames(betas))) )
   {
@@ -182,8 +168,8 @@ FraminghamPACEaProjector = function(betas, age_sex_df,
   # Calculate score:
   score = model_data$model_intercept[[model_name]] + 
     rowSums(t(betas.norm[model_data$model_probes[[model_name]],]) %*% diag(model_data$model_weights[[model_name]])) +
-    age_sex_df$Age * model_data$age_weight[[model_name]] +
-    age_sex_df$Female * model_data$female_weight[[model_name]]
+    0 * model_data$age_weight[[model_name]] +
+    0.5 * model_data$female_weight[[model_name]]
   
   names(score) <- colnames(betas.norm)
   
