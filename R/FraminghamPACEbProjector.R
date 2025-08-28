@@ -1,18 +1,4 @@
-#' Generate the Framingham Methylation Pace of Aging Scores!
-#'
-#' \code{FraminghamPACEbProjector} returns the FraminghamPACEb of Aging Methylation Scores
-#'
-#' @name FraminghamPACEbProjector
-#' @rdname FraminghamPACEbProjector
-#' @param betas A numeric matrix containing the percent-methylation for each probe.  Missing data should be 'NA's.  The rows should be probes, with the probe ID as the row name, and the columns should be samples, with sample names as the column name.
-#' @param proportionOfProbesRequired (default: 0.8). Threshold for missing data. If EPICv2 data is detected, this is automatically lowered to 0.7.
-#' @param model_type (default: "default"). Choose which model to use. Options are "default" for the original model or "MSA" for the alternative MSA model.
-#' @param return_normalized_betas (default: FALSE). If FALSE, returns a dataframe of FraminghamPACEb values. If TRUE, returns a list containing both the dataframe of FraminghamPACEb values and the normalized beta matrix.
-#' @return By default, a dataframe of FraminghamPACEb values with sample names as row names and the model name as column name. If return_normalized_betas=TRUE, a list containing both the pace_score dataframe and the normalized_betas matrix.
-#' @details This function returns the Framingham Methylation Pace of Aging scores for methylation data generated from either the Illumina 450K array or the Illumina EPIC array.  First, if a sample is missing data for more probes than the threshold, the sample will get an `NA` back for a score.  If a particular probe is missing fewer samples than the threshold, then missing data is set to the mean in the provided 'betas' matrix.  If a probe is missing more samples than the threshold, then all samples in the 'betas' matrix have their value replaced with the mean of the training data for that particular model.
-#' @importFrom preprocessCore normalize.quantiles.use.target
-#' @importFrom utils data
-#' @export
+#' @noRd
 globalVariables("FraminghamPACEb_RIDGE")
 globalVariables("FraminghamPACEb_ENET")
 globalVariables(c(".validate_betas"))

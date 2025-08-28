@@ -2,28 +2,29 @@
 % Please edit documentation in R/getFraminghamPACE.R
 \name{getFraminghamPACE}
 \alias{getFraminghamPACE}
-\title{Orchestrate FraminghamPACE projectors}
+\title{Compute Framingham Methylation Pace of Aging (FraminghamPACE) scores}
 \usage{
-getFraminghamPACE(betas, model_type = "default")
+getFraminghamPACE(betas, model_type = "FraminghamPACE")
 }
 \arguments{
 \item{betas}{A numeric matrix of percent-methylation values with probe IDs as
-row names and samples as column names. Missing values should be NA.}
+row names and samples as column names. Missing values should be `NA`.}
 
-\item{model_type}{Character string; one of "default", "Alternate1",
-"Alternate2", or "Alternate3".}
+\item{model_type}{Character string selecting the model variant. One of
+"FraminghamPACE" (primary), "Alternate1", "Alternate2", or "Alternate3".}
 }
 \value{
-A data frame of FraminghamPACE scores with samples as row names and
-  the model name as the single column.
+A data frame of FraminghamPACE scores with sample names as row names
+  and the model name as the single column.
 }
 \description{
-Runs the appropriate projector based on `model_type` and returns a
-FraminghamPACE score data frame.
+Computes FraminghamPACE scores for methylation arrays using one of four
+supported model variants. Provide a probe-by-sample beta matrix and select a
+variant via `model_type`.
 }
 \examples{
 \dontrun{
-FraminghamPACE <- getFraminghamPACE(betas, model_type = "default")
+FraminghamPACE <- getFraminghamPACE(betas, model_type = "FraminghamPACE")
 }
 
 }
