@@ -2,7 +2,7 @@
 % Please edit documentation in R/getFraminghamPACE.R
 \name{getFraminghamPACE}
 \alias{getFraminghamPACE}
-\title{Compute Framingham Methylation Pace of Aging (FraminghamPACE) scores}
+\title{Compute Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) scores}
 \usage{
 getFraminghamPACE(betas, model_type = "FraminghamPACE")
 }
