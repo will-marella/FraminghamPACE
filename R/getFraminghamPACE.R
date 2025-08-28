@@ -1,7 +1,7 @@
 # Preserve global variable declarations (not roxygen)
 globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 
-#' Compute Framingham Methylation Pace of Aging (FraminghamPACE) scores
+#' Compute Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) scores
 #'
 #' Computes FraminghamPACE scores for methylation arrays using one of four
 #' supported model variants. Provide a probe-by-sample beta matrix and select a
