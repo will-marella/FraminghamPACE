@@ -15,39 +15,23 @@
 #' @importFrom preprocessCore normalize.quantiles.use.target
 #' @importFrom utils data
 #' @export
-globalVariables("FraminghamPACEa_model")
-globalVariables("FraminghamPACEa_model_MSA")
-globalVariables("FraminghamPACEas_model_TruDx")
-globalVariables("FraminghamPACEas_model_TruDx_Ensemb")
-globalVariables("FraminghamPACEas_model_TruDx_Ensemb_RIDGE_TEST")
-globalVariables("FraminghamPACEas_model_TruDx_MINUS7_TEST")
+globalVariables("FraminghamPACEa_RIDGE")
+globalVariables("FraminghamPACEa_ENET")
 globalVariables(c(".validate_betas", ".validate_age_sex", ".validate_and_align_samples"))
 
 
 FraminghamPACEaProjector = function(betas, age_sex_df, 
-                                    proportionOfProbesRequired=0.8, model_type="default",
+                                    proportionOfProbesRequired=0.8, model_type="RIDGE",
                                     return_normalized_betas = FALSE) {
   requireNamespace("preprocessCore")
   
   # Load the appropriate model based on model_type
-  if (model_type == "default") {
-    data("FraminghamPACEa_model", package = "FraminghamPACE")
-    model_data <- FraminghamPACEa_model
-  } else if (model_type == "MSA") {
-    data("FraminghamPACEa_model_MSA", package = "FraminghamPACE")
-    model_data <- FraminghamPACEa_model_MSA
-  } else if (model_type == "TruDx") {
-    data("FraminghamPACEas_model_TruDx", package = "FraminghamPACE")
-    model_data <- FraminghamPACEas_model_TruDx
-  } else if (model_type == "TruDx_Ensemb") {
-    data("FraminghamPACEas_model_TruDx_Ensemb", package = "FraminghamPACE")
-    model_data <- FraminghamPACEas_model_TruDx_Ensemb
-  } else if (model_type == "RIDGE") {
-    data("FraminghamPACEas_model_TruDx_Ensemb_RIDGE_TEST", package = "FraminghamPACE")
-    model_data <- FraminghamPACEas_model_TruDx_Ensemb_RIDGE_TEST
-  } else if (model_type == "MINUS7") {
-    data("FraminghamPACEas_model_TruDx_MINUS7_TEST", package = "FraminghamPACE")
-    model_data <- FraminghamPACEas_model_TruDx_MINUS7_TEST
+  if (model_type == "RIDGE") {
+    data("FraminghamPACEa_RIDGE", package = "FraminghamPACE")
+    model_data <- FraminghamPACEa_RIDGE
+  } else if (model_type == "ENET") {
+    data("FraminghamPACEa_ENET", package = "FraminghamPACE")
+    model_data <- FraminghamPACEa_ENET
   } else {
     stop("Invalid model_type. Options are 'default' or 'MSA'.")
   }
