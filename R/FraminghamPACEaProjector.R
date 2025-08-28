@@ -33,7 +33,7 @@ FraminghamPACEaProjector = function(betas,
     data("FraminghamPACEa_ENET", package = "FraminghamPACE")
     model_data <- FraminghamPACEa_ENET
   } else {
-    stop("Invalid model_type. Options are 'default' or 'MSA'.")
+    stop("Invalid model_type. Options are 'RIDGE' or 'ENET'.")
   }
   
   # Validate betas

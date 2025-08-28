@@ -13,41 +13,26 @@
 #' @importFrom preprocessCore normalize.quantiles.use.target
 #' @importFrom utils data
 #' @export
-globalVariables("FraminghamPACEb_model")
-globalVariables("FraminghamPACEb_model_MSA")
-globalVariables("FraminghamPACEbs_model_TruDx")
-globalVariables("FraminghamPACEbs_model_TruDx_Ensemb")
-globalVariables("FraminghamPACEbs_model_TruDx_Ensemb_RIDGE_TEST")
-globalVariables("FraminghamPACEbs_model_TruDx_MINUS7_TEST")
+globalVariables("FraminghamPACEb_RIDGE")
+globalVariables("FraminghamPACEb_ENET")
 globalVariables(c(".validate_betas"))
 
 
-FraminghamPACEbProjector = function( betas, 
-                                     proportionOfProbesRequired=0.8, model_type="default",
-                                     return_normalized_betas = FALSE) {
+FraminghamPACEbProjector = function(betas, 
+                                    proportionOfProbesRequired=0.8, 
+                                    model_type="RIDGE",
+                                    return_normalized_betas = FALSE) {
   requireNamespace("preprocessCore")
   
   # Load the appropriate model based on model_type
-  if (model_type == "default") {
-    data("FraminghamPACEb_model", package = "FraminghamPACE")
-    model_data <- FraminghamPACEb_model
-  } else if (model_type == "MSA") {
-    data("FraminghamPACEb_model_MSA", package = "FraminghamPACE")
-    model_data <- FraminghamPACEb_model_MSA
-  } else if (model_type == "TruDx") {
-    data("FraminghamPACEbs_model_TruDx", package = "FraminghamPACE")
-    model_data <- FraminghamPACEbs_model_TruDx
-  } else if (model_type == "TruDx_Ensemb") {
-    data("FraminghamPACEbs_model_TruDx_Ensemb", package = "FraminghamPACE")
-    model_data <- FraminghamPACEbs_model_TruDx_Ensemb
-  } else if (model_type == "RIDGE") {
-    data("FraminghamPACEbs_model_TruDx_Ensemb_RIDGE_TEST", package = "FraminghamPACE")
-    model_data <- FraminghamPACEbs_model_TruDx_Ensemb_RIDGE_TEST
-  } else if (model_type == "MINUS7") {
-    data("FraminghamPACEbs_model_TruDx_MINUS7_TEST", package = "FraminghamPACE")
-    model_data <- FraminghamPACEbs_model_TruDx_MINUS7_TEST
+  if (model_type == "RIDGE") {
+    data("FraminghamPACEb_RIDGE", package = "FraminghamPACE")
+    model_data <- FraminghamPACEb_RIDGE
+  } else if (model_type == "ENET") {
+    data("FraminghamPACEb_ENET", package = "FraminghamPACE")
+    model_data <- FraminghamPACEb_ENET
   } else {
-    stop("Invalid model_type. Options are 'default' or 'MSA'.")
+    stop("Invalid model_type. Options are 'RIDGE' or 'ENET'.")
   }
   
   betas <- .validate_betas(betas)
