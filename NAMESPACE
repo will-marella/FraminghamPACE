@@ -2,6 +2,7 @@
 
 export(FraminghamPACEaProjector)
 export(FraminghamPACEbProjector)
+export(getFraminghamPACE)
 export(getFraminghamPACEaProbes)
 export(getFraminghamPACEbProbes)
 importFrom(preprocessCore,normalize.quantiles.use.target)
