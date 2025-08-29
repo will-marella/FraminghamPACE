@@ -7,7 +7,9 @@ globalVariables(c(".validate_betas"))
 FraminghamPACEbProjector = function(betas, 
                                     proportionOfProbesRequired=0.8, 
                                     model_type="RIDGE",
-                                    return_normalized_betas = FALSE) {
+                                    return_normalized_betas = FALSE,
+                                    sample_coverage_min = 0.75,
+                                    return_coverage = FALSE) {
   requireNamespace("preprocessCore")
   
   # Load the appropriate model based on model_type
@@ -26,7 +28,7 @@ FraminghamPACEbProjector = function(betas,
   if( any(grepl("TC|BC", rownames(betas))) )
   {
     # Print message to user
-    print("This looks like EPICv2 array data. If EPICv2, FraminghamPACE will lower the proportionOfProbesRequired to 0.7 and proceed with missing probes present on 450k and EPICv1. Averaging the opposite strand replicates may take a bit more time.")
+    print("Averaging replicates...")
     
     # Proceed with averaging: Code taken from ENmix package.
     cgid = sapply(strsplit(rownames(betas), split = "_"),  unlist)[1, ]
@@ -39,45 +41,28 @@ FraminghamPACEbProjector = function(betas,
     betas = betas[!(cgid %in% dupcg), ]
     rownames(betas) = sapply(strsplit(rownames(betas), split = "_"), unlist)[1, ]
     betas <-rbind(betas, betas2)
-    
-    # Set proportionOfProbesRequired to 0.7 if condition is TRUE
-    proportionOfProbesRequired <- 0.7
   }
 
   # Get the model name
   model_name <- model_data$model_names[1]
 
-  # Assess predictive coverage before any imputation or threshold gating
-  try({
-    .assess_predictive_coverage(betas, model_data, model_name, verbose = TRUE)
-  }, silent = TRUE)
-  
+
   if( !is.numeric(as.matrix(betas)) ) { stop("betas matrix/data.frame is not numeric!") }
-  probeOverlap <- length(which(rownames(betas) %in% model_data$model_probes[[model_name]])) / 
-    length(model_data$model_probes[[model_name]])
-  probeOverlap_background <- length(which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]])) / 
-    length(model_data$gold_standard_probes[[model_name]])
   
-  if( probeOverlap < proportionOfProbesRequired | probeOverlap_background < proportionOfProbesRequired ) {
-    result <- rep(NA, ncol(betas))
-    names(result) <- colnames(betas)
-    
-    pace_result <- data.frame(result)
-    colnames(pace_result) <- model_name
-    rownames(pace_result) <- colnames(betas)
-    
-    cat("WARNING: Insufficient number of probes present in the data file\n")
-    
-    if(return_normalized_betas) {
-      return(list(
-        pace_score = pace_result,
-        normalized_betas = NULL
-      ))
-    } else {
-      return(pace_result)
-    }
-    
+  # Compute per-sample coverage prior to imputation; mark low-coverage samples
+  sample_cov <- .compute_sample_coverage(betas, model_data, model_name)
+  low_cov_samples <- names(sample_cov)[which(sample_cov < (sample_coverage_min * 100))]
+  if (length(low_cov_samples) > 0) {
+    message(sprintf("%d samples below coverage threshold (%.0f%%). Scores will be set to NA for these samples.",
+                    length(low_cov_samples), sample_coverage_min * 100))
   }
+
+  # Report dataset-level predictive coverage on the kept samples (pre-imputation)
+  try({
+    kept <- setdiff(colnames(betas), low_cov_samples)
+    betas_for_coverage <- if (length(kept) > 0) betas[, kept, drop = FALSE] else betas[, 0, drop = FALSE]
+    .assess_predictive_coverage(betas_for_coverage, model_data, model_name, verbose = TRUE)
+  }, silent = TRUE)
   
   # Work with a numeric matrix of betas
   betas.mat <- as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),])
@@ -94,8 +79,8 @@ FraminghamPACEbProjector = function(betas,
     }
   }
   
-  # Identify samples with too many missing probes and remove them from the matrix
-  samplesToRemove <- colnames(betas.mat)[which(apply(betas.mat, 2, function(x) { 1 - ( length(which(is.na(x))) / length(x) ) < proportionOfProbesRequired}))]
+  # Identify samples to remove based on coverage threshold
+  samplesToRemove <- intersect(colnames(betas.mat), low_cov_samples)
   
   if( length(samplesToRemove) > 0 ) {
     betas.mat <- betas.mat[,-which(colnames(betas.mat) %in% samplesToRemove)]
@@ -109,12 +94,16 @@ FraminghamPACEbProjector = function(betas,
     colnames(pace_result) <- model_name
     rownames(pace_result) <- colnames(betas)
     
-    cat("WARNING: Empty beta matrix after removing samples with excessive missingness\n")
+    cat("WARNING: Empty beta matrix after removing low-coverage samples\n")
     
-    if(return_normalized_betas) {
+    if(return_normalized_betas || return_coverage) {
       return(list(
         pace_score = pace_result,
-        normalized_betas = NULL
+        normalized_betas = NULL,
+        coverage = list(
+          sample = sample_cov,
+          threshold = sample_coverage_min
+        )
       ))
     } else {
       return(pace_result)
@@ -171,13 +160,16 @@ FraminghamPACEbProjector = function(betas,
   pace_result <- data.frame(score)
   colnames(pace_result) <- model_name
   
-  if(return_normalized_betas) {
+  if(return_normalized_betas || return_coverage) {
     return(list(
       pace_score = pace_result,
-      normalized_betas = betas.norm
+      normalized_betas = if (isTRUE(return_normalized_betas)) betas.norm else NULL,
+      coverage = list(
+        sample = sample_cov,
+        threshold = sample_coverage_min
+      )
     ))
-  } else {
-    return(pace_result)
   }
+  return(pace_result)
   
 }

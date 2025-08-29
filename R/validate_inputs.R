@@ -131,3 +131,30 @@
     coverage_label = coverage_label
   ))
 }
+
+#' Compute per-sample predictive coverage percentages
+#'
+#' Coverage per sample is the sum of model probe importances for probes that are
+#' non-missing in that sample, multiplied by 100. Importance sums to 1 across
+#' scoring probes, so coverage ranges from 0 to 100.
+#'
+#' @param betas Numeric matrix/data frame of beta values (probes x samples)
+#' @param model_data Loaded model data list containing probe sets and importance
+#' @param model_name Character model name within model_data
+#' @return Named numeric vector of per-sample coverage percentages
+#' @noRd
+.compute_sample_coverage <- function(betas, model_data, model_name) {
+  if (is.data.frame(betas)) betas <- as.matrix(betas)
+  scoring_probes <- model_data$model_probes[[model_name]]
+  importance <- model_data$model_importance_pct[[model_name]]
+  probes <- intersect(scoring_probes, rownames(betas))
+  if (length(probes) == 0) {
+    return(setNames(rep(0, ncol(betas)), colnames(betas)))
+  }
+  imp_vec <- importance[probes]
+  present <- !is.na(betas[probes, , drop = FALSE])
+  # colSums of importance weights for present probes; importance sums to 1
+  coverage <- as.numeric(crossprod(imp_vec, present)) * 100
+  names(coverage) <- colnames(betas)
+  return(coverage)
+}
