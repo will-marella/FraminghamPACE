@@ -58,6 +58,17 @@ FraminghamPACEaProjector = function(betas,
                     length(low_cov_samples), sample_coverage_min * 100))
   }
 
+  # Report how many samples remain after filtering; short-circuit if none remain
+  remaining_count <- length(setdiff(colnames(betas), low_cov_samples))
+  if (length(low_cov_samples) > 0) {
+    message(sprintf("%d samples remain after filtering (from %d).", remaining_count, ncol(betas)))
+  }
+  if (remaining_count == 0) {
+    message(sprintf("No samples remain after filtering at %.0f%% coverage. Consider lowering 'sample_coverage_min'.",
+                    sample_coverage_min * 100))
+    return(invisible(NULL))
+  }
+
   # Report dataset-level predictive coverage on the kept samples (pre-imputation)
   try({
     kept <- setdiff(colnames(betas), low_cov_samples)
