@@ -21,17 +21,17 @@ globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 #' }
 #'
 #' @export
-getFraminghamPACE <- function(betas, model_type = "FraminghamPACE") {
+getFraminghamPACE <- function(betas, model_type = "FraminghamPACE", ...) {
   
   # Run the projector for the given model type
   if (model_type == "FraminghamPACE") {
-    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "RIDGE")
+    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "RIDGE", ...)
   } else if (model_type == "Alternate1") {
-    FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "RIDGE")
+    FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "RIDGE", ...)
   } else if (model_type == "Alternate2") {
-    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "ENET")
+    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "ENET", ...)
   } else if (model_type == "Alternate3") {
-    FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "ENET")
+    FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "ENET", ...)
   } else {
     stop("Invalid model_type. Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', or 'Alternate3'.")
   }
