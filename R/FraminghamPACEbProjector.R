@@ -59,14 +59,13 @@ FraminghamPACEbProjector = function(betas,
 
   # Report how many samples remain after filtering; short-circuit if none remain
   remaining_count <- length(setdiff(colnames(betas), low_cov_samples))
-  if (length(low_cov_samples) > 0) {
-    message(sprintf("%d samples remain after filtering (from %d).", remaining_count, ncol(betas)))
-  }
   if (remaining_count == 0) {
     message(sprintf("No samples remain after filtering at %.0f%% coverage. Consider lowering 'sample_coverage_min'.",
                     sample_coverage_min * 100))
     return(invisible(NULL))
   }
+  message(sprintf("%d samples remain after filtering at %.0f%% coverage (from %d).",
+                  remaining_count, sample_coverage_min * 100, ncol(betas)))
 
   # Report dataset-level predictive coverage on the kept samples (pre-imputation)
   try({
@@ -81,13 +80,11 @@ FraminghamPACEbProjector = function(betas,
   # If probes don't exist, we'll add them as rows of values based on their mean in the gold standard dataset
   probesNotInMatrix <- model_data$gold_standard_probes[[model_name]][which(model_data$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
   if( length(probesNotInMatrix) > 0 ) {
-    for( probe in probesNotInMatrix ) {
-      tmp.mat <- matrix(0, nrow=1, ncol=ncol(betas.mat))
-      rownames(tmp.mat) <- probe
-      colnames(tmp.mat) <- colnames(betas.mat)
-      tmp.mat[probe,] <- rep(model_data$gold_standard_means[[model_name]][probe], ncol(tmp.mat))
-      betas.mat <- rbind(betas.mat, tmp.mat)
-    }
+    means_vec <- model_data$gold_standard_means[[model_name]][probesNotInMatrix]
+    add_mat <- tcrossprod(means_vec, rep(1, ncol(betas.mat)))
+    rownames(add_mat) <- probesNotInMatrix
+    colnames(add_mat) <- colnames(betas.mat)
+    betas.mat <- rbind(betas.mat, add_mat)
   }
   
   # Identify samples to remove based on coverage threshold
@@ -154,9 +151,9 @@ FraminghamPACEbProjector = function(betas,
   colnames(betas.norm) <- colnames(betas.mat)
   
   # Calculate score:
-  score = model_data$model_intercept[[model_name]] + 
-    rowSums(t(betas.norm[model_data$model_probes[[model_name]],]) %*% 
-              diag(model_data$model_weights[[model_name]]))
+  weighted_sum <- colSums(betas.norm[model_data$model_probes[[model_name]], , drop = FALSE] * 
+                            model_data$model_weights[[model_name]])
+  score = model_data$model_intercept[[model_name]] + weighted_sum
   
   names(score) <- colnames(betas.norm)
   
