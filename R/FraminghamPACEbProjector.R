@@ -43,9 +43,14 @@ FraminghamPACEbProjector = function(betas,
     # Set proportionOfProbesRequired to 0.7 if condition is TRUE
     proportionOfProbesRequired <- 0.7
   }
-  
+
   # Get the model name
   model_name <- model_data$model_names[1]
+
+  # Assess predictive coverage before any imputation or threshold gating
+  try({
+    .assess_predictive_coverage(betas, model_data, model_name, verbose = TRUE)
+  }, silent = TRUE)
   
   if( !is.numeric(as.matrix(betas)) ) { stop("betas matrix/data.frame is not numeric!") }
   probeOverlap <- length(which(rownames(betas) %in% model_data$model_probes[[model_name]])) / 

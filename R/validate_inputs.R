@@ -50,3 +50,84 @@
     stop(e$message, call. = FALSE)
   })
 }
+
+#' Assess dataset-level predictive coverage and probe availability
+#'
+#' Computes background/scoring probe availability and a weighted predictive
+#' coverage percentage using model probe importance and probe missingness.
+#' Prints a brief summary when verbose.
+#'
+#' @param betas Numeric matrix/data frame of beta values (probes x samples)
+#' @param model_data Loaded model data list containing probe sets and importance
+#' @param model_name Character model name within model_data
+#' @param verbose Logical; print messages (default TRUE)
+#' @return A list with background/scoring availability and coverage metrics
+#' @noRd
+.assess_predictive_coverage <- function(betas, model_data, model_name, verbose = TRUE) {
+  # Ensure matrix
+  if (is.data.frame(betas)) betas <- as.matrix(betas)
+
+  # Background and scoring probe sets
+  background_probes <- model_data$gold_standard_probes[[model_name]]
+  scoring_probes <- model_data$model_probes[[model_name]]
+
+  # Availability: probe present and has at least one non-NA value
+  probe_has_data <- function(probe) {
+    if (!probe %in% rownames(betas)) return(FALSE)
+    any(!is.na(betas[probe, , drop = FALSE]))
+  }
+
+  background_total <- length(background_probes)
+  background_available <- sum(vapply(background_probes, probe_has_data, logical(1)))
+
+  scoring_total <- length(scoring_probes)
+  scoring_available <- sum(vapply(scoring_probes, probe_has_data, logical(1)))
+
+  # Predictive coverage: importance weighted by non-missing fraction per probe
+  importance <- model_data$model_importance_pct[[model_name]]
+  probes_in_imp <- intersect(names(importance), rownames(betas))
+
+  # Fraction present per probe (0 if fully missing)
+  non_missing_fraction <- function(probe) {
+    vals <- betas[probe, , drop = FALSE]
+    1 - (sum(is.na(vals)) / length(vals))
+  }
+
+  frac_vec <- vapply(probes_in_imp, non_missing_fraction, numeric(1))
+  # Weight by importance and sum to percentage (importance sums to 1)
+  coverage_pct <- round(100 * sum(importance[probes_in_imp] * frac_vec, na.rm = TRUE), 1)
+
+  # Coverage label
+  if (is.na(coverage_pct)) {
+    coverage_label <- NA_character_
+  } else if (coverage_pct > 90) {
+    coverage_label <- "Good"
+  } else if (coverage_pct > 75) {
+    coverage_label <- "Moderate"
+  } else {
+    coverage_label <- "Poor"
+  }
+
+  if (isTRUE(verbose)) {
+    message(sprintf("%d/%d probes available for background normalization", background_available, background_total))
+    message(sprintf("%d/%d probes available for clock estimation", scoring_available, scoring_total))
+    if (!is.na(coverage_pct)) {
+      message(sprintf("Predictive coverage: %.1f%%", coverage_pct))
+      if (coverage_label == "Good") {
+        message("Good predictive coverage. Report predictive coverage with all findings.")
+      } else if (coverage_label == "Moderate") {
+        message("Moderate predictive coverage. Report predictive coverage with all findings.")
+      } else if (coverage_label == "Poor") {
+        message("Poor predictive coverage. Report predictive coverage with all findings.")
+      }
+    }
+    message("For more information on predictive coverage, see https://github.com/will-marella/FraminghamPACE")
+  }
+
+  return(list(
+    background = list(available = background_available, total = background_total),
+    scoring = list(available = scoring_available, total = scoring_total),
+    coverage_pct = coverage_pct,
+    coverage_label = coverage_label
+  ))
+}
