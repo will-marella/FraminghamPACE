@@ -111,7 +111,7 @@
   if (isTRUE(verbose)) {
     cli::cli_alert_info("Probes: {background_available}/{background_total} background | {scoring_available}/{scoring_total} scoring")
     if (!is.na(coverage_pct)) {
-      cli::cli_alert_info("Predictive coverage: {coverage_pct}% [{coverage_label}]")
+      cli::cli_alert_info("Predictive coverage: {coverage_pct}% [{.emph {coverage_label}}]")
     }
     cli::cli_text("More: https://github.com/will-marella/FraminghamPACE")
   }
