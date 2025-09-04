@@ -109,14 +109,9 @@
   }
 
   if (isTRUE(verbose)) {
-    cli::cli_rule("FraminghamPACE: dataset coverage")
-    cli::cli_text("Probes: {background_available}/{background_total} background | {scoring_available}/{scoring_total} scoring")
+    cli::cli_alert_info("Probes: {background_available}/{background_total} background | {scoring_available}/{scoring_total} scoring")
     if (!is.na(coverage_pct)) {
-      label <- switch(coverage_label,
-                      Good = "{.emph Good}",
-                      Moderate = "{.emph Moderate}",
-                      Poor = "{.emph Poor}")
-      cli::cli_alert_info("Predictive coverage: {coverage_pct}% [{label}]")
+      cli::cli_alert_info("Predictive coverage: {coverage_pct}% [{coverage_label}]")
     }
     cli::cli_text("More: https://github.com/will-marella/FraminghamPACE")
   }
