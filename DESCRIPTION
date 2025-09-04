@@ -12,7 +12,8 @@ License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-  preprocessCore
+  preprocessCore,
+  cli
 RoxygenNote: 7.3.2
 Author: William T. Marella [aut, cre, ctb]
 Maintainer: William T. Marella <wm2530@cumc.columbia.edu>

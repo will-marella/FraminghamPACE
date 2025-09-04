@@ -109,19 +109,16 @@
   }
 
   if (isTRUE(verbose)) {
-    message(sprintf("%d/%d probes available for background normalization", background_available, background_total))
-    message(sprintf("%d/%d probes available for clock estimation", scoring_available, scoring_total))
+    cli::cli_rule("FraminghamPACE: dataset coverage")
+    cli::cli_text("Probes: {background_available}/{background_total} background | {scoring_available}/{scoring_total} scoring")
     if (!is.na(coverage_pct)) {
-      message(sprintf("Predictive coverage: %.1f%%", coverage_pct))
-      if (coverage_label == "Good") {
-        message("Good predictive coverage. Report predictive coverage with all findings.")
-      } else if (coverage_label == "Moderate") {
-        message("Moderate predictive coverage. Report predictive coverage with all findings.")
-      } else if (coverage_label == "Poor") {
-        message("Poor predictive coverage. Report predictive coverage with all findings.")
-      }
+      label <- switch(coverage_label,
+                      Good = "{.emph Good}",
+                      Moderate = "{.emph Moderate}",
+                      Poor = "{.emph Poor}")
+      cli::cli_alert_info("Predictive coverage: {coverage_pct}% [{label}]")
     }
-    message("For more information on predictive coverage, see https://github.com/will-marella/FraminghamPACE")
+    cli::cli_text("More: https://github.com/will-marella/FraminghamPACE")
   }
 
   return(list(

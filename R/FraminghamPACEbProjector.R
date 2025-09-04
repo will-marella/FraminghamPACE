@@ -53,19 +53,16 @@ FraminghamPACEbProjector = function(betas,
   sample_cov <- .compute_sample_coverage(betas, model_data, model_name)
   low_cov_samples <- names(sample_cov)[which(sample_cov < (sample_coverage_min * 100))]
   if (length(low_cov_samples) > 0) {
-    message(sprintf("%d samples below coverage threshold (%.0f%%). Scores will be set to NA for these samples.",
-                    length(low_cov_samples), sample_coverage_min * 100))
+    cli::cli_alert_warning("{length(low_cov_samples)} samples below coverage threshold ({sample_coverage_min*100}%). Scores will be set to NA for these samples.")
   }
 
   # Report how many samples remain after filtering; short-circuit if none remain
   remaining_count <- length(setdiff(colnames(betas), low_cov_samples))
   if (remaining_count == 0) {
-    message(sprintf("No samples remain after filtering at %.0f%% coverage. Consider lowering 'sample_coverage_min'.",
-                    sample_coverage_min * 100))
+    cli::cli_alert_danger("No samples remain after filtering at {sample_coverage_min*100}% coverage. Consider lowering 'sample_coverage_min'.")
     return(invisible(NULL))
   }
-  message(sprintf("%d samples remain after filtering at %.0f%% coverage (from %d).",
-                  remaining_count, sample_coverage_min * 100, ncol(betas)))
+  cli::cli_alert_success("{remaining_count} samples remain after filtering at {sample_coverage_min*100}% coverage (from {ncol(betas)}).")
 
   # Report dataset-level predictive coverage on the kept samples (pre-imputation)
   try({
