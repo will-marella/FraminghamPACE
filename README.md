@@ -1,8 +1,6 @@
 # FraminghamPACE
 The FraminghamPACE R package allows users to calculate FraminghamPACE in their own DNA methylation dataset. Given a set of methylation beta values, where rows are probes and columns are subjects, this tool will produce FraminghamPACE. The algorithm works on data produced by the Illumina 450k, EPIC, and EPIC v2 arrays.
 
-There are two FraminghamPACE estimates, FraminghamPACEa and FraminghamPACEb. FraminghamPACEa was trained with age and sex included as additional covariates, whereas FraminghamPACEb was trained solely on CpGs. The methods perform very similarly across domains. Both are predicted with this package.
-
 ## Installation (via devtools):
 To install and load FraminghamPACE, use the following code:
 ```r
@@ -23,7 +21,7 @@ A numeric matrix containing the percent-methylation for each probe. Missing data
 
 
 ###### model_type
-Choose which model to use. Options are "FraminghamPACE" (primary), "Alternate1", "Alternate2", or "Alternate3".
+Choose which model to use. Options are "FraminghamPACE" (default), "Alternate1", "Alternate2", or "Alternate3".
 
 ###### sample_coverage_min
 (default: 0.75) Minimum per-sample predictive coverage required to compute a score. Samples below this threshold are retained in the output but their score is set to `NA`. See Predictive coverage below.
@@ -35,7 +33,7 @@ Choose which model to use. Options are "FraminghamPACE" (primary), "Alternate1",
 (default: FALSE) If `TRUE`, return the normalized beta matrix used for scoring.
 
 #### Output
-By default, a dataframe of FraminghamPACE values with sample names as row names and the model name as the column name.
+By default, a dataframe of FraminghamPACE values with sample names as row names and the model name as the column name. If `return_coverage` and/or `return_normalized_betas` are `TRUE`, the function returns a list with `pace_score`, and optionally `coverage` and/or `normalized_betas`.
 
 ## Predictive coverage
 
@@ -55,23 +53,23 @@ Set `return_coverage = TRUE` to receive a list with `coverage$sample` (named num
 
 ### Replicates
 
-If probe row names contain EPIC v2 replicate suffixes (e.g., "TC" or "BC"), replicates are automatically averaged prior to scoring.
+Replicate probes (e.g., with suffixes like "TC" or "BC") are automatically averaged prior to scoring.
 
 ## Example Usage
 ```r
 # Load in beta matrix
 my_betas <- read.csv("preprocessed_beta_matrix_or_dataframe.csv")
 
-# Compute FraminghamPACE (primary model)
-FraminghamPACE <- getFraminghamPACE(betas = my_betas, model_type = "FraminghamPACE")
+# Compute FraminghamPACE (default model)
+FraminghamPACE <- getFraminghamPACE(betas = my_betas)
 
 ```
 
-### Example with coverage outputs
+### Example with alternate model, relaxed coverage threshold, coverage outputs
 ```r
 res <- getFraminghamPACE(
   betas = my_betas,
-  model_type = "FraminghamPACE",
+  model_type = "Alternate1",
   sample_coverage_min = 0.70,
   return_coverage = TRUE,
   return_normalized_betas = FALSE
