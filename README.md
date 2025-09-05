@@ -21,14 +21,41 @@ If you prefer to load only the probes used for model fitting or background norma
 ###### betas
 A numeric matrix containing the percent-methylation for each probe. Missing data should be 'NA's. The rows should be probes, with the probe IDs as the row names, and the columns should be samples, with sample names as the column names.
 
-###### proportionOfProbesRequired
-(default: 0.8) The proportion of probes required to have a non-missing value for FraminghamPACE for a sample, as well as to determine if we can impute the mean from the current cohort. Note: if the function detects EPIC v2 data based on row names that contain the replicate suffix, the proportion of probes required will automatically be lowered to 0.7.
 
 ###### model_type
 Choose which model to use. Options are "FraminghamPACE" (primary), "Alternate1", "Alternate2", or "Alternate3".
 
+###### sample_coverage_min
+(default: 0.75) Minimum per-sample predictive coverage required to compute a score. Samples below this threshold are retained in the output but their score is set to `NA`. See Predictive coverage below.
+
+###### return_coverage
+(default: FALSE) If `TRUE`, return a list containing the per-sample coverage percentages and the threshold used.
+
+###### return_normalized_betas
+(default: FALSE) If `TRUE`, return the normalized beta matrix used for scoring.
+
 #### Output
 By default, a dataframe of FraminghamPACE values with sample names as row names and the model name as the column name.
+
+## Predictive coverage
+
+Predictive coverage quantifies how much of the model's signal is supported by observed (non-missing) probes in your data.
+
+- **Per-sample coverage**: For each sample, we sum the model probe importances for probes that are present (non-`NA`) in that sample and multiply by 100. Because importances sum to 1 across scoring probes, per-sample coverage ranges from 0 to 100.
+- **Dataset-level coverage (summary)**: Before imputation and after removing low-coverage samples, we report a dataset-level predictive coverage. This is the importance-weighted average fraction of non-missing values per scoring probe across the kept samples, expressed as a percentage, and labeled as **Good** (>90%), **Moderate** (>75%), or **Poor** (≤75%). We also report the count of available background and scoring probes detected in your input.
+
+### Per-sample coverage and filtering
+
+- **Thresholding**: Samples with per-sample coverage below `sample_coverage_min` (default 0.75 → 75%) have their scores set to `NA` and are excluded from normalization and model fitting. A message indicates how many samples remain above the threshold.
+- **Tuning**: You can relax or tighten this filter by changing `sample_coverage_min`, e.g., `sample_coverage_min = 0.70`.
+
+### Returning coverage and normalized betas
+
+Set `return_coverage = TRUE` to receive a list with `coverage$sample` (named numeric vector of per-sample coverage percentages) and `coverage$threshold`. Set `return_normalized_betas = TRUE` to also receive the quantile-normalized beta matrix used for scoring.
+
+### Replicates
+
+If probe row names contain EPIC v2 replicate suffixes (e.g., "TC" or "BC"), replicates are automatically averaged prior to scoring.
 
 ## Example Usage
 ```r
@@ -38,6 +65,26 @@ my_betas <- read.csv("preprocessed_beta_matrix_or_dataframe.csv")
 # Compute FraminghamPACE (primary model)
 FraminghamPACE <- getFraminghamPACE(betas = my_betas, model_type = "FraminghamPACE")
 
+```
+
+### Example with coverage outputs
+```r
+res <- getFraminghamPACE(
+  betas = my_betas,
+  model_type = "FraminghamPACE",
+  sample_coverage_min = 0.70,
+  return_coverage = TRUE,
+  return_normalized_betas = FALSE
+)
+
+# Scores (data.frame with one column)
+res$pace_score
+
+# Per-sample predictive coverage (%)
+head(res$coverage$sample)
+
+# Threshold used
+res$coverage$threshold
 ```
 ## getFraminghamPACEProbes()
 

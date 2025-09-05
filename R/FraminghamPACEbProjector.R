@@ -5,12 +5,14 @@ globalVariables(c(".validate_betas"))
 
 
 FraminghamPACEbProjector = function(betas, 
-                                    proportionOfProbesRequired=0.8, 
                                     model_type="RIDGE",
                                     return_normalized_betas = FALSE,
                                     sample_coverage_min = 0.75,
                                     return_coverage = FALSE) {
   requireNamespace("preprocessCore")
+  
+  # Hardcode probe-level imputation threshold at 0.8
+  proportionOfProbesRequired <- 0.8
   
   # Load the appropriate model based on model_type
   if (model_type == "RIDGE") {
