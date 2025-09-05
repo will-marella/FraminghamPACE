@@ -11,46 +11,57 @@ getFraminghamPACE(betas, model_type = "FraminghamPACE", ...)
 row names and samples as column names. Missing values should be `NA`.}
 
 \item{model_type}{Character string selecting the model variant. One of
-"FraminghamPACE" (primary), "Alternate1", "Alternate2", or "Alternate3".}
+"FraminghamPACE" (default), "Alternate1", "Alternate2", or "Alternate3".}
 
-\item{...}{Optional arguments to control filtering and outputs:
-\itemize{
-\item \code{sample_coverage_min} (numeric; default 0.75): Minimum per-sample predictive coverage required to compute a score. Samples below the threshold are excluded from normalization/scoring and returned as \code{NA} in the score output.
-\item \code{return_coverage} (logical; default FALSE): If \code{TRUE}, also return a list containing per-sample coverage percentages and the threshold used.
-\item \code{return_normalized_betas} (logical; default FALSE): If \code{TRUE}, also return the quantile-normalized beta matrix used for scoring.
-}}
+\item{...}{Optional arguments you can pass to control filtering and outputs:
+- `sample_coverage_min` (numeric; default 0.75): Minimum per-sample predictive
+  coverage required to compute a score. Samples below the threshold are
+  excluded from normalization/scoring and returned as `NA` in the score output.
+- `return_coverage` (logical; default FALSE): If `TRUE`, also return a list
+  containing per-sample coverage percentages and the threshold used.
+- `return_normalized_betas` (logical; default FALSE): If `TRUE`, also return
+  the quantile-normalized beta matrix used for scoring.}
 }
 \value{
-\itemize{
-\item If \code{return_coverage = FALSE} and \code{return_normalized_betas = FALSE}: a data frame of FraminghamPACE scores with sample names as row names and the model name as the single column.
-\item Otherwise: a list with elements \code{pace_score} (data frame of scores), \code{normalized_betas} (matrix or \code{NULL}), and \code{coverage} (list with \code{sample} and \code{threshold}).
-}
+- If `return_coverage = FALSE` and `return_normalized_betas = FALSE`:
+  a data frame of FraminghamPACE scores with sample names as row names and the
+  model name as the single column.
+- Otherwise: a list with elements
+  - `pace_score`: data frame of scores (as above)
+  - `normalized_betas`: matrix or `NULL` depending on `return_normalized_betas`
+  - `coverage`: list with `sample` (named numeric vector of per-sample coverage
+     percentages) and `threshold` (numeric `sample_coverage_min`)
 }
 \description{
 Computes FraminghamPACE scores for methylation arrays using one of four
-supported model variants. Provide a probe-by-sample beta matrix and select a
-variant via `model_type`.
+supported model variants. Provide your beta matrix to calculate FraminghamPACE.
 }
 \details{
-Predictive coverage reflects the fraction of model signal supported by observed (non-missing) probes and is computed prior to any imputation. Samples with coverage below \code{sample_coverage_min} have scores set to \code{NA} and are excluded from normalization and model fitting.
+Predictive coverage reflects the fraction of model signal supported by observed
+(non-missing) probes. Coverage is computed prior to any imputation. Samples with
+coverage below `sample_coverage_min` have scores set to `NA` and are excluded
+from normalization and model fitting. Probes entirely absent in the input are
+added at gold-standard means. For probes that are present but have missing
+values, missing entries are imputed with cohort means when enough values are
+observed; otherwise, the probe is replaced with model means.
 
-Probes entirely absent in the input are added at gold-standard means. For probes that are present but have missing values, missing entries are imputed with cohort means when enough values are observed; otherwise, the probe is replaced with model means. EPIC v2 replicate probes with suffixes (e.g., "TC"/"BC") are automatically averaged prior to scoring.
+Replicate probes are automatically averaged prior to scoring.
 }
 \examples{
 \dontrun{
-# Basic usage (primary model)
-scores <- getFraminghamPACE(betas, model_type = "FraminghamPACE")
+# Basic usage
+scores <- getFraminghamPACE(betas)
 
-# With coverage outputs and a relaxed coverage threshold
+# With a different model, coverage outputs, and a relaxed per-sample coverage threshold
 res <- getFraminghamPACE(
   betas,
-  model_type = "FraminghamPACE",
+  model_type = "Alternate1",
   sample_coverage_min = 0.70,
   return_coverage = TRUE,
   return_normalized_betas = FALSE
 )
 res$pace_score            # data.frame of scores
-head(res$coverage$sample) # per-sample predictive coverage (%)
+head(res$coverage$sample) # per-sample predictive coverage (\%)
 res$coverage$threshold    # threshold used
 }
 
