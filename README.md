@@ -1,7 +1,7 @@
 ## FraminghamPACE
 FraminghamPACE is an R package for computing the Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) from DNA methylation arrays. Provide a matrix of methylation beta values, with rows as CpG probes and columns as samples, and the package returns PACE estimates. The algorithm supports Illumina 450k, EPIC, EPIC v2, and MSA arrays.
 
-The package can estimate four closely related model variants of FraminghamPACE, which were trained with slightly different feature sets and modelling strategies. The primary variance, FraminghamPACE, will be the selection for the majority of use cases, whereas the 'Alternate' versions 1, 2, and 3, ... See () for more information.
+The package estimates FraminghamPACE and three closely related model variants. These alternate versions ('Alternate1', 'Alternate2', 'Alternate3') were trained with slightly different feature sets and/or modeling approaches, and provide a sensitivity analysis for our overall approach. See (Paper supplement TBD) for more information.
 
 ## Installation (via devtools)
 To install and load FraminghamPACE:
@@ -21,13 +21,13 @@ To retrieve the CpGs used by the models (either scoring probes or the larger bac
 
 ### Arguments
 - **betas (input matrix)**: Numeric matrix of methylation beta values representing the proportion methylated (0–1) at each CpG. Rows are CpG probe IDs (`cg...`) and columns are samples. Missing values should be `NA`.
-  - Columns (sample names) should be unique. Duplicate sample names are permitted in R but can lead to ambiguous outputs and downstream merges; we strongly recommend making them unique.
+  - Column names (sample names) and row names (probe IDs) must be unique.
   - Data frames are accepted and converted to a numeric matrix internally.
-  - Replicate probes are handled automatically (see Replicates below).
+  - Replicate probes are handled automatically (see [Replicates](#replicates)).
 
 - **model_type**: Which variant to compute. One of `"FraminghamPACE"` (default), `"Alternate1"`, `"Alternate2"`, or `"Alternate3"`.
 
-- **sample_coverage_min**: Minimum per-sample predictive coverage required to compute a score. Samples below this threshold are kept in the result but their score is set to `NA`. This filter is applied before normalization and model scoring; see Predictive coverage below for details. Default: `0.75` (i.e., 75%).
+- **sample_coverage_min**: Minimum per-sample predictive coverage required to compute a score. Samples below this threshold are kept in the result but their score is set to `NA`. This filter is applied before normalization and model scoring; see [Predictive coverage](#predictive-coverage) for details. Default: `0.75` (i.e., 75%).
 
 - **return_coverage**: If `TRUE`, also return per-sample predictive coverage percentages and the threshold used. Default: `FALSE`.
 
@@ -44,11 +44,13 @@ To retrieve the CpGs used by the models (either scoring probes or the larger bac
 - **If both are TRUE**: You receive both coverage and normalized betas in the list alongside `pace_score`.
 
 ### Predictive coverage
-Model coefficients (weights) determine each probe’s contribution to the overall PACE estimate. We summarize each probe’s contribution as an importance score based on the coefficient estimate and variance of the probe in the training sample. Predictive coverage then quantifies, for the data you supplied, how much of the model’s weighted signal is actually supported by observed (non-missing) probes.
+Predictive coverage quantifies how much of the model’s weighted signal is supported by observed (non-missing) scoring probes in your data. Each scoring probe carries an importance weight derived from the fitted model.
 
-Per-sample predictive coverage is the sum of probe importance for probes that are present in that sample, multiplied by 100. Because probe importance is normalized to sum to 1 across scoring probes, per-sample coverage ranges from 0 to 100.
+Per-sample predictive coverage is the sum of importance weights for non-missing scoring probes in that sample, multiplied by 100. Because weights sum to 1 across scoring probes, coverage ranges from 0 to 100.
 
-At the dataset level (before any imputation and after removing samples below `sample_coverage_min`), we report an importance-weighted percentage summarizing how well the scoring probes are covered across the kept samples. For orientation, we label this as Good (>90%), Moderate (>75%), or Poor (≤75%). We also report how many background and scoring probes were detected in your input.
+At the dataset level (computed before imputation and after removing samples below `sample_coverage_min`), we report an importance‑weighted percentage summarizing coverage across kept samples, labeled Good (>90%), Moderate (>75%), or Poor (≤75%). We also report counts of background and scoring probes detected in your input.
+
+Reporting: Please report the dataset-level predictive coverage alongside any PACE results.
 
 ### Per-sample filtering
 Samples with coverage below `sample_coverage_min` have their scores set to `NA` and are excluded from normalization and model fitting. You can relax or tighten this threshold (e.g., `sample_coverage_min = 0.70`). Messages report how many samples remain and a brief predictive coverage summary.
@@ -68,16 +70,16 @@ my_betas <- read.csv("preprocessed_beta_matrix_or_dataframe.csv")
 scores <- getFraminghamPACE(betas = my_betas)
 
 # Example with an alternate model, relaxed coverage, and coverage output
-res <- getFraminghamPACE(
+result <- getFraminghamPACE(
   betas = my_betas,
   model_type = "Alternate1",
   sample_coverage_min = 0.70,
   return_coverage = TRUE,
   return_normalized_betas = FALSE
 )
-res$pace_score            # data.frame of scores
-head(res$coverage$sample) # per-sample predictive coverage (%)
-res$coverage$threshold    # threshold used
+result$pace_score            # data.frame of scores
+head(result$coverage$sample) # per-sample predictive coverage (%)
+result$coverage$threshold    # threshold used
 ```
 
 ---
