@@ -44,13 +44,15 @@ To retrieve the CpGs used by the models (either scoring probes or the larger bac
 - **If both are TRUE**: You receive both coverage and normalized betas in the list alongside `pace_score`.
 
 ### Predictive coverage
-Predictive coverage quantifies how much of the model’s weighted signal is supported by observed (non‑missing) scoring probes in your data. Each scoring probe has an importance weight \(w_i\) proportional to its fitted model coefficient multiplied by its standard deviation in the training data; weights are normalized so that \(\sum_i w_i = 1\).
+Predictive coverage quantifies how much of the model’s weighted signal is supported by observed (non‑missing) scoring probes in your data. Each scoring probe has an importance weight $w_i$ proportional to its fitted model coefficient multiplied by its standard deviation in the training data; weights are normalized so that $\sum_i w_i = 1$.
 
-Per‑sample predictive coverage for sample \(s\) is
-\(\mathrm{coverage}_s = 100\times\sum_i w_i\, I_{is}\), where \(I_{is}=1\) if probe \(i\) is observed (non‑missing) in sample \(s\), and 0 otherwise. Because the weights sum to 1, per‑sample coverage ranges from 0 to 100.
+Per‑sample predictive coverage for sample $s$ is:
+$$\text{coverage}_s = 100\times\sum_i w_i\, I_{is}$$
+where $I_{is}=1$ if probe $i$ is observed (non‑missing) in sample $s$, and 0 otherwise. Because the weights sum to 1, per‑sample coverage ranges from 0 to 100.
 
-After filtering out low‑coverage samples (see `sample_coverage_min`), dataset‑level predictive coverage is computed on the kept samples. Let \(m_i\) be the fraction of kept samples in which probe \(i\) is observed (non‑missing). Then
-\(\mathrm{coverage}_{dataset} = 100\times\sum_i w_i\, m_i\). We label this as Good (>90%), Moderate (>75%), or Poor (≤75%), and also report counts of background and scoring probes detected in your input.
+After filtering out low‑coverage samples (see `sample_coverage_min`), dataset‑level predictive coverage is computed on the kept samples. Let $m_i$ be the fraction of kept samples in which probe $i$ is observed (non‑missing). Then
+$$\text{coverage}_{\text{dataset}} = 100\times\sum_i w_i\, m_i$$
+We label this as Good (>90%), Moderate (>75%), or Poor (≤75%), and also report counts of background and scoring probes detected in your input.
 
 When you run `getFraminghamPACE()`, the function reports how many samples meet `sample_coverage_min`, excludes lower‑coverage samples from normalization and scoring, and then prints the dataset‑level coverage summary and probe counts described above.
 
