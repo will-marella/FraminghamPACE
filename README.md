@@ -60,7 +60,8 @@ We label this as Good (>90%), Moderate (>75%), or Poor (≤75%), and also report
 
 When you run `getFraminghamPACE()`, the function reports how many samples meet `sample_coverage_min`, excludes lower‑coverage samples from normalization and scoring, and then prints the dataset‑level coverage summary and probe counts described above.
 
-Reporting: Please report the dataset‑level predictive coverage alongside any PACE results.
+> [!IMPORTANT]
+> **Reporting:** Please report the dataset‑level predictive coverage alongside any PACE results.
 
 ### Per-sample filtering
 Samples with coverage below `sample_coverage_min` have their scores set to `NA` and are excluded from normalization and model fitting. You can relax or tighten this threshold (e.g., `sample_coverage_min = 0.70`). Messages report how many samples remain and a brief predictive coverage summary.
