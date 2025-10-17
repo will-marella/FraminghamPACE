@@ -22,9 +22,15 @@
       "'betas' must contain numeric values" = is.numeric(betas)
     )
     
-    # Check probe names format
-    if (!all(grepl("^cg", rownames(betas)))) {
-      warning("Not all row names start with 'cg'. Please verify probe identifiers are correct.")
+    # Check probe names format; filter to cg-only rows for robustness
+    cg_mask <- grepl("^cg", rownames(betas))
+    if (!all(cg_mask)) {
+      removed <- sum(!cg_mask)
+      message(sprintf("Filtering out %d non-'cg' rows prior to scoring", removed))
+      betas <- betas[cg_mask, , drop = FALSE]
+      if (nrow(betas) == 0) {
+        stop("After filtering, no 'cg' probes remain. Please provide Illumina CpG IDs as row names.")
+      }
     }
     
     # Check matrix orientation
