@@ -20,7 +20,10 @@ row names and samples as column names. Missing values should be `NA`.}
 - `return_coverage` (logical; default FALSE): If `TRUE`, also return a list
   containing per-sample coverage percentages and the threshold used.
 - `return_normalized_betas` (logical; default FALSE): If `TRUE`, also return
-  the quantile-normalized beta matrix used for scoring.}
+  the quantile-normalized beta matrix used for scoring.
+- `timing` (logical; default FALSE): If `TRUE`, print timing for major
+  processing stages (validation, replicate averaging, background subsetting,
+  imputation, normalization, scoring). Has no effect on results.}
 }
 \value{
 - If `return_coverage = FALSE` and `return_normalized_betas = FALSE`:
