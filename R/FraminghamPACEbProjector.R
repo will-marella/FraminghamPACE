@@ -16,14 +16,7 @@ FraminghamPACEbProjector = function(betas,
   proportionOfProbesRequired <- 0.8
   
   # Local timing helper
-  time_stage <- function(label, expr) {
-    if (!isTRUE(timing)) {
-      return(eval.parent(substitute(expr)))
-    }
-    t <- system.time(res <- eval.parent(substitute(expr)))
-    cli::cli_alert_info("{label}: {round(t['elapsed'], 3)}s")
-    res
-  }
+  time_stage <- function(label, expr) .with_timing(label, expr, timing)
   
   # Load the appropriate model based on model_type
   if (model_type == "RIDGE") {
@@ -42,16 +35,7 @@ FraminghamPACEbProjector = function(betas,
   model_name <- model_data$model_names[1]
   
   # Prefilter to background by base ID (replicate-aware; do not rename yet)
-  betas <- time_stage("Prefilter to background by base ID", {
-    rn <- rownames(betas)
-    base_ids <- sub("_.*$", "", rn)
-    bg <- model_data$gold_standard_probes[[model_name]]
-    in_bg <- base_ids %in% bg
-    if (!all(in_bg)) {
-      betas <- betas[in_bg, , drop = FALSE]
-    }
-    betas
-  })
+  betas <- .prefilter_to_background(betas, model_data$gold_standard_probes[[model_name]], timing = timing)
   
   if( any(grepl("TC|BC", rownames(betas))) )
   {
@@ -59,32 +43,7 @@ FraminghamPACEbProjector = function(betas,
     print("Averaging replicates...")
     
     # Proceed with averaging: Code taken from ENmix package.
-    time_stage("Replicate averaging", {
-      rn <- rownames(betas)
-      base_ids <- sub("_.*$", "", rn)
-      tab <- table(base_ids)
-      dup_ids <- names(tab)[tab > 1L]
-
-      if (length(dup_ids) > 0L) {
-        sel_dup <- base_ids %in% dup_ids
-        betas_dup <- betas[sel_dup, , drop = FALSE]
-        groups <- base_ids[sel_dup]
-
-        sums <- rowsum(betas_dup, groups, na.rm = TRUE)
-        counts <- rowsum((!is.na(betas_dup)) * 1L, groups)
-        counts_num <- pmax(counts, 1L)
-        means <- sums / counts_num
-        means[counts == 0] <- NA_real_
-
-        betas_nondup <- betas[!sel_dup, , drop = FALSE]
-        rownames(betas_nondup) <- base_ids[!sel_dup]
-        betas <- rbind(betas_nondup, as.matrix(means))
-      } else {
-        # No duplicates; still strip suffixes for consistency with original logic
-        rownames(betas) <- base_ids
-      }
-      betas
-    })
+    betas <- .collapse_replicates_rowsum(betas, timing = timing)
   }
 
   # model_name already defined above

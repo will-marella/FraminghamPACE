@@ -6,14 +6,7 @@
 .validate_betas <- function(betas, timing = FALSE) {
   
   tryCatch({
-    time_stage <- function(label, expr) {
-      if (!isTRUE(timing)) {
-        return(eval.parent(substitute(expr)))
-      }
-      t <- system.time(res <- eval.parent(substitute(expr)))
-      cli::cli_alert_info("{label}: {round(t['elapsed'], 3)}s")
-      res
-    }
+    time_stage <- function(label, expr) .with_timing(label, expr, timing)
     
     stopifnot(
       "'betas' must be provided" = !is.null(betas),
@@ -88,10 +81,7 @@
   n_samples <- ncol(betas)
   
   # Base-ID aware presence across samples
-  base_ids <- sub("_.*$", "", rownames(betas))
-  # counts of non-missing per base and per sample
-  nonmiss_counts_by_base <- rowsum((!is.na(betas)) * 1L, group = base_ids, reorder = FALSE)
-  present_by_base <- nonmiss_counts_by_base > 0L
+  present_by_base <- .present_by_base(betas)
   
   # Availability counts (present in betas and at least one non-missing value)
   background_total <- length(background_probes)
@@ -166,9 +156,7 @@
   importance <- model_data$model_importance_pct[[model_name]]
   
   # Collapse presence by base ID so suffixes (e.g., _TC/_BC/_orig) don't break matching
-  base_ids <- sub("_.*$", "", rownames(betas))
-  present_counts_by_base <- rowsum((!is.na(betas)) * 1L, group = base_ids, reorder = FALSE)
-  present_by_base <- present_counts_by_base > 0L
+  present_by_base <- .present_by_base(betas)
   
   # Build present matrix aligned to scoring_probes
   n_samples <- ncol(betas)
