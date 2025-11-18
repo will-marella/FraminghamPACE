@@ -38,6 +38,21 @@ FraminghamPACEbProjector = function(betas,
   
   betas <- time_stage("Validate inputs", .validate_betas(betas, timing = timing))
   
+  # Get the model name
+  model_name <- model_data$model_names[1]
+  
+  # Prefilter to background by base ID (replicate-aware; do not rename yet)
+  betas <- time_stage("Prefilter to background by base ID", {
+    rn <- rownames(betas)
+    base_ids <- sub("_.*$", "", rn)
+    bg <- model_data$gold_standard_probes[[model_name]]
+    in_bg <- base_ids %in% bg
+    if (!all(in_bg)) {
+      betas <- betas[in_bg, , drop = FALSE]
+    }
+    betas
+  })
+  
   if( any(grepl("TC|BC", rownames(betas))) )
   {
     # Print message to user
@@ -59,8 +74,7 @@ FraminghamPACEbProjector = function(betas,
     })
   }
 
-  # Get the model name
-  model_name <- model_data$model_names[1]
+  # model_name already defined above
 
 
   if( !is.numeric(as.matrix(betas)) ) { stop("betas matrix/data.frame is not numeric!") }
