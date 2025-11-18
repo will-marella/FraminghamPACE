@@ -5,14 +5,25 @@ globalVariables(c(".validate_betas"))
 
 
 FraminghamPACEbProjector = function(betas, 
-                                    model_type="RIDGE",
-                                    return_normalized_betas = FALSE,
-                                    sample_coverage_min = 0.75,
-                                    return_coverage = FALSE) {
+                                   model_type="RIDGE",
+                                   return_normalized_betas = FALSE,
+                                   sample_coverage_min = 0.75,
+                                   return_coverage = FALSE,
+                                   timing = FALSE) {
   requireNamespace("preprocessCore")
   
   # Hardcode probe-level imputation threshold at 0.8
   proportionOfProbesRequired <- 0.8
+  
+  # Local timing helper
+  time_stage <- function(label, expr) {
+    if (!isTRUE(timing)) {
+      return(eval.parent(substitute(expr)))
+    }
+    t <- system.time(res <- eval.parent(substitute(expr)))
+    cli::cli_alert_info("{label}: {round(t['elapsed'], 3)}s")
+    res
+  }
   
   # Load the appropriate model based on model_type
   if (model_type == "RIDGE") {
@@ -25,7 +36,7 @@ FraminghamPACEbProjector = function(betas,
     stop("Invalid model_type. Options are 'RIDGE' or 'ENET'.")
   }
   
-  betas <- .validate_betas(betas)
+  betas <- time_stage("Validate inputs", .validate_betas(betas, timing = timing))
   
   if( any(grepl("TC|BC", rownames(betas))) )
   {
@@ -33,16 +44,19 @@ FraminghamPACEbProjector = function(betas,
     print("Averaging replicates...")
     
     # Proceed with averaging: Code taken from ENmix package.
-    cgid = sapply(strsplit(rownames(betas), split = "_"),  unlist)[1, ]
-    dupcg = unique(cgid[duplicated(cgid)])
-    betas2 = betas[cgid %in% dupcg, ]
-    cid = sapply(strsplit(rownames(betas2), split = "_"),   unlist)[1, ]
-    betas2 = aggregate(betas2, by = list(cid), FUN = function(x) mean(x, na.rm = TRUE))
-    rownames(betas2) = betas2[, 1]
-    betas2 = as.matrix(betas2[, -1])
-    betas = betas[!(cgid %in% dupcg), ]
-    rownames(betas) = sapply(strsplit(rownames(betas), split = "_"), unlist)[1, ]
-    betas <-rbind(betas, betas2)
+    time_stage("Replicate averaging", {
+      cgid = sapply(strsplit(rownames(betas), split = "_"),  unlist)[1, ]
+      dupcg = unique(cgid[duplicated(cgid)])
+      betas2 = betas[cgid %in% dupcg, ]
+      cid = sapply(strsplit(rownames(betas2), split = "_"),   unlist)[1, ]
+      betas2 = aggregate(betas2, by = list(cid), FUN = function(x) mean(x, na.rm = TRUE))
+      rownames(betas2) = betas2[, 1]
+      betas2 = as.matrix(betas2[, -1])
+      betas = betas[!(cgid %in% dupcg), ]
+      rownames(betas) = sapply(strsplit(rownames(betas), split = "_"), unlist)[1, ]
+      betas <-rbind(betas, betas2)
+      betas
+    })
   }
 
   # Get the model name
@@ -52,7 +66,7 @@ FraminghamPACEbProjector = function(betas,
   if( !is.numeric(as.matrix(betas)) ) { stop("betas matrix/data.frame is not numeric!") }
   
   # Compute per-sample coverage prior to imputation; mark low-coverage samples
-  sample_cov <- .compute_sample_coverage(betas, model_data, model_name)
+  sample_cov <- time_stage("Compute sample coverage", .compute_sample_coverage(betas, model_data, model_name))
   low_cov_samples <- names(sample_cov)[which(sample_cov < (sample_coverage_min * 100))]
   if (length(low_cov_samples) > 0) {
     cli::cli_alert_warning("{length(low_cov_samples)} samples below coverage threshold ({sample_coverage_min*100}%). Scores will be set to NA for these samples.")
@@ -70,27 +84,30 @@ FraminghamPACEbProjector = function(betas,
   try({
     kept <- setdiff(colnames(betas), low_cov_samples)
     betas_for_coverage <- if (length(kept) > 0) betas[, kept, drop = FALSE] else betas[, 0, drop = FALSE]
-    .assess_predictive_coverage(betas_for_coverage, model_data, model_name, verbose = TRUE)
+    time_stage("Dataset predictive coverage", .assess_predictive_coverage(betas_for_coverage, model_data, model_name, verbose = TRUE))
   }, silent = TRUE)
   
   # Work with a numeric matrix of betas
-  betas.mat <- as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),])
+  betas.mat <- time_stage("Subset to background", as.matrix(betas[which(rownames(betas) %in% model_data$gold_standard_probes[[model_name]]),]))
   
   # If probes don't exist, we'll add them as rows of values based on their mean in the gold standard dataset
   probesNotInMatrix <- model_data$gold_standard_probes[[model_name]][which(model_data$gold_standard_probes[[model_name]] %in% rownames(betas.mat) == F)]
   if( length(probesNotInMatrix) > 0 ) {
-    means_vec <- model_data$gold_standard_means[[model_name]][probesNotInMatrix]
-    add_mat <- tcrossprod(means_vec, rep(1, ncol(betas.mat)))
-    rownames(add_mat) <- probesNotInMatrix
-    colnames(add_mat) <- colnames(betas.mat)
-    betas.mat <- rbind(betas.mat, add_mat)
+    betas.mat <- time_stage("Add missing background probes", {
+      means_vec <- model_data$gold_standard_means[[model_name]][probesNotInMatrix]
+      add_mat <- tcrossprod(means_vec, rep(1, ncol(betas.mat)))
+      rownames(add_mat) <- probesNotInMatrix
+      colnames(add_mat) <- colnames(betas.mat)
+      betas.mat <- rbind(betas.mat, add_mat)
+      betas.mat
+    })
   }
   
   # Identify samples to remove based on coverage threshold
   samplesToRemove <- intersect(colnames(betas.mat), low_cov_samples)
   
   if( length(samplesToRemove) > 0 ) {
-    betas.mat <- betas.mat[,-which(colnames(betas.mat) %in% samplesToRemove)]
+    betas.mat <- time_stage("Remove low-coverage samples", betas.mat[,-which(colnames(betas.mat) %in% samplesToRemove)])
   }
   
   if(ncol(betas.mat) == 0) {
@@ -118,40 +135,49 @@ FraminghamPACEbProjector = function(betas,
   }
   
   # Identify missingness on a probe level
-  pctValuesPresent <- apply( betas.mat, 1, function(x) { 1 - (length(which(is.na(x))) / length(x)) } )
+  pctValuesPresent <- time_stage("Probe missingness fractions", apply( betas.mat, 1, function(x) { 1 - (length(which(is.na(x))) / length(x)) } ))
   
   # If they're missing values, but less than the proportion required, we impute to the cohort mean
   probesToAdjust <- which(pctValuesPresent < 1 & pctValuesPresent >= proportionOfProbesRequired)
   
   # Case 1: Multiple probes to adjust
   if( length(probesToAdjust) > 1 ) {
-    betas.mat[probesToAdjust,] <- t(apply( betas.mat[probesToAdjust,], 1 , function(x) {
-      x[is.na(x)] = mean( x, na.rm = TRUE )
-      x
-    }))
+    time_stage("Impute partially-missing probes", {
+      betas.mat[probesToAdjust,] <- t(apply( betas.mat[probesToAdjust,], 1 , function(x) {
+        x[is.na(x)] = mean( x, na.rm = TRUE )
+        x
+      }))
+      betas.mat
+    })
   }
   
   # Case 2: Exactly one probe to adjust
   if(length(probesToAdjust) == 1) {
-    betas.mat[probesToAdjust,which(is.na(betas.mat[probesToAdjust,]))] <- mean(betas.mat[probesToAdjust,], na.rm=T)
+    time_stage("Impute single partially-missing probe", {
+      betas.mat[probesToAdjust,which(is.na(betas.mat[probesToAdjust,]))] <- mean(betas.mat[probesToAdjust,], na.rm=T)
+      betas.mat
+    })
   }
   
   # If they're missing too many values, everyones value gets replaced with the mean from the Framingham cohort
   if( length(which(pctValuesPresent < proportionOfProbesRequired)) > 0 ) {
     probesToReplaceWithMean <- rownames(betas.mat)[which(pctValuesPresent < proportionOfProbesRequired)]
-    for( probe in probesToReplaceWithMean ) {
-      betas.mat[probe,] <- rep(model_data$model_means[[model_name]][probe], ncol(betas.mat))
-    }
+    time_stage("Replace highly-missing probes with model means", {
+      for( probe in probesToReplaceWithMean ) {
+        betas.mat[probe,] <- rep(model_data$model_means[[model_name]][probe], ncol(betas.mat))
+      }
+      betas.mat
+    })
   }
   
   # Normalize the matrix to the gold standard dataset
-  betas.norm <- preprocessCore::normalize.quantiles.use.target(betas.mat, target=model_data$gold_standard_means[[model_name]])
+  betas.norm <- time_stage("Quantile normalize to gold standard", preprocessCore::normalize.quantiles.use.target(betas.mat, target=model_data$gold_standard_means[[model_name]]))
   rownames(betas.norm) <- rownames(betas.mat)
   colnames(betas.norm) <- colnames(betas.mat)
   
   # Calculate score:
-  weighted_sum <- colSums(betas.norm[model_data$model_probes[[model_name]], , drop = FALSE] * 
-                            model_data$model_weights[[model_name]])
+  weighted_sum <- time_stage("Compute weighted sum for scoring", colSums(betas.norm[model_data$model_probes[[model_name]], , drop = FALSE] * 
+                           model_data$model_weights[[model_name]]))
   score = model_data$model_intercept[[model_name]] + weighted_sum
   
   names(score) <- colnames(betas.norm)

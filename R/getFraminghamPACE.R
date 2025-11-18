@@ -18,6 +18,9 @@ globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 #'     containing per-sample coverage percentages and the threshold used.
 #'   - `return_normalized_betas` (logical; default FALSE): If `TRUE`, also return
 #'     the quantile-normalized beta matrix used for scoring.
+#'   - `timing` (logical; default FALSE): If `TRUE`, print timing for major
+#'     processing stages (validation, replicate averaging, background subsetting,
+#'     imputation, normalization, scoring). Has no effect on results.
 #'
 #' @details
 #' Predictive coverage reflects the fraction of model signal supported by observed

@@ -3,9 +3,18 @@
 #' @param betas A matrix or data frame containing methylation values
 #' @return A validated numeric matrix of methylation values
 #' @noRd
-.validate_betas <- function(betas) {
+.validate_betas <- function(betas, timing = FALSE) {
   
   tryCatch({
+    time_stage <- function(label, expr) {
+      if (!isTRUE(timing)) {
+        return(eval.parent(substitute(expr)))
+      }
+      t <- system.time(res <- eval.parent(substitute(expr)))
+      cli::cli_alert_info("{label}: {round(t['elapsed'], 3)}s")
+      res
+    }
+    
     stopifnot(
       "'betas' must be provided" = !is.null(betas),
       "'betas' must be a matrix or data frame" = is.matrix(betas) || is.data.frame(betas),
@@ -15,7 +24,7 @@
     # Convert to matrix if needed
     if (is.data.frame(betas)) {
       message("Converting 'betas' from data frame to matrix")
-      betas <- as.matrix(betas)
+      betas <- time_stage("Convert data.frame to matrix", as.matrix(betas))
     }
     
     stopifnot(
@@ -23,11 +32,11 @@
     )
     
     # Check probe names format; filter to cg-only rows for robustness
-    cg_mask <- grepl("^cg", rownames(betas))
+    cg_mask <- time_stage("Compute cg probe mask", grepl("^cg", rownames(betas)))
     if (!all(cg_mask)) {
       removed <- sum(!cg_mask)
       message(sprintf("Filtering out %d non-'cg' rows prior to scoring", removed))
-      betas <- betas[cg_mask, , drop = FALSE]
+      betas <- time_stage("Filter to cg probes", betas[cg_mask, , drop = FALSE])
       if (nrow(betas) == 0) {
         stop("After filtering, no 'cg' probes remain. Please provide Illumina CpG IDs as row names.")
       }
@@ -42,7 +51,7 @@
     }
     
     # Check NA patterns
-    na_counts <- colSums(is.na(betas))
+    na_counts <- time_stage("NA scan across matrix", colSums(is.na(betas)))
     if (any(na_counts > 0)) {
       message(sprintf(
         "Found samples with missing values. Range: %d-%d NAs per sample", 
