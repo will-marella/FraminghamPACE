@@ -45,16 +45,29 @@ FraminghamPACEbProjector = function(betas,
     
     # Proceed with averaging: Code taken from ENmix package.
     time_stage("Replicate averaging", {
-      cgid = sapply(strsplit(rownames(betas), split = "_"),  unlist)[1, ]
-      dupcg = unique(cgid[duplicated(cgid)])
-      betas2 = betas[cgid %in% dupcg, ]
-      cid = sapply(strsplit(rownames(betas2), split = "_"),   unlist)[1, ]
-      betas2 = aggregate(betas2, by = list(cid), FUN = function(x) mean(x, na.rm = TRUE))
-      rownames(betas2) = betas2[, 1]
-      betas2 = as.matrix(betas2[, -1])
-      betas = betas[!(cgid %in% dupcg), ]
-      rownames(betas) = sapply(strsplit(rownames(betas), split = "_"), unlist)[1, ]
-      betas <-rbind(betas, betas2)
+      rn <- rownames(betas)
+      base_ids <- sub("_.*$", "", rn)
+      tab <- table(base_ids)
+      dup_ids <- names(tab)[tab > 1L]
+
+      if (length(dup_ids) > 0L) {
+        sel_dup <- base_ids %in% dup_ids
+        betas_dup <- betas[sel_dup, , drop = FALSE]
+        groups <- base_ids[sel_dup]
+
+        sums <- rowsum(betas_dup, groups, na.rm = TRUE)
+        counts <- rowsum(!is.na(betas_dup), groups)
+        counts_num <- pmax(counts, 1L)
+        means <- sums / counts_num
+        means[counts == 0] <- NA_real_
+
+        betas_nondup <- betas[!sel_dup, , drop = FALSE]
+        rownames(betas_nondup) <- base_ids[!sel_dup]
+        betas <- rbind(betas_nondup, as.matrix(means))
+      } else {
+        # No duplicates; still strip suffixes for consistency with original logic
+        rownames(betas) <- base_ids
+      }
       betas
     })
   }
