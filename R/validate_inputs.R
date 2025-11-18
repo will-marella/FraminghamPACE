@@ -85,27 +85,38 @@
   # Background and scoring probe sets
   background_probes <- model_data$gold_standard_probes[[model_name]]
   scoring_probes <- model_data$model_probes[[model_name]]
-  rn <- rownames(betas)
   n_samples <- ncol(betas)
-
-  # Vectorized precomputations
-  idx_bg <- match(background_probes, rn, nomatch = 0L)
-  idx_sc <- match(scoring_probes, rn, nomatch = 0L)
-  nonmiss_counts <- rowSums(!is.na(betas))
-
+  
+  # Base-ID aware presence across samples
+  base_ids <- sub("_.*$", "", rownames(betas))
+  # counts of non-missing per base and per sample
+  nonmiss_counts_by_base <- rowsum((!is.na(betas)) * 1L, group = base_ids, reorder = FALSE)
+  present_by_base <- nonmiss_counts_by_base > 0L
+  
   # Availability counts (present in betas and at least one non-missing value)
   background_total <- length(background_probes)
   scoring_total <- length(scoring_probes)
-  background_available <- sum(idx_bg > 0L & nonmiss_counts[idx_bg] > 0L)
-  scoring_available <- sum(idx_sc > 0L & nonmiss_counts[idx_sc] > 0L)
-
-  # Predictive coverage: importance weighted by non-missing fraction per probe
+  base_levels <- rownames(present_by_base)
+  idx_bg <- match(background_probes, base_levels, nomatch = 0L)
+  idx_sc <- match(scoring_probes, base_levels, nomatch = 0L)
+  bg_has_any <- logical(length(background_probes))
+  sc_has_any <- logical(length(scoring_probes))
+  if (any(idx_bg > 0L)) {
+    bg_has_any[idx_bg > 0L] <- rowSums(present_by_base[idx_bg[idx_bg > 0L], , drop = FALSE]) > 0L
+  }
+  if (any(idx_sc > 0L)) {
+    sc_has_any[idx_sc > 0L] <- rowSums(present_by_base[idx_sc[idx_sc > 0L], , drop = FALSE]) > 0L
+  }
+  background_available <- sum(bg_has_any)
+  scoring_available <- sum(sc_has_any)
+  
+  # Predictive coverage: importance weighted by non-missing fraction per probe (base-aware)
   importance <- model_data$model_importance_pct[[model_name]]
   imp_names <- names(importance)
-  idx_imp <- match(imp_names, rn, nomatch = 0L)
+  idx_imp <- match(imp_names, base_levels, nomatch = 0L)
   keep <- idx_imp > 0L
   if (any(keep)) {
-    frac_vec <- nonmiss_counts[idx_imp[keep]] / n_samples
+    frac_vec <- rowSums(present_by_base[idx_imp[keep], , drop = FALSE]) / n_samples
     coverage_pct <- round(100 * sum(importance[keep] * frac_vec, na.rm = TRUE), 1)
   } else {
     coverage_pct <- NA_real_
