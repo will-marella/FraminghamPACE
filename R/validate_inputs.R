@@ -85,32 +85,31 @@
   # Background and scoring probe sets
   background_probes <- model_data$gold_standard_probes[[model_name]]
   scoring_probes <- model_data$model_probes[[model_name]]
+  rn <- rownames(betas)
+  n_samples <- ncol(betas)
 
-  # Availability: probe present and has at least one non-NA value
-  probe_has_data <- function(probe) {
-    if (!probe %in% rownames(betas)) return(FALSE)
-    any(!is.na(betas[probe, , drop = FALSE]))
-  }
+  # Vectorized precomputations
+  idx_bg <- match(background_probes, rn, nomatch = 0L)
+  idx_sc <- match(scoring_probes, rn, nomatch = 0L)
+  nonmiss_counts <- rowSums(!is.na(betas))
 
+  # Availability counts (present in betas and at least one non-missing value)
   background_total <- length(background_probes)
-  background_available <- sum(vapply(background_probes, probe_has_data, logical(1)))
-
   scoring_total <- length(scoring_probes)
-  scoring_available <- sum(vapply(scoring_probes, probe_has_data, logical(1)))
+  background_available <- sum(idx_bg > 0L & nonmiss_counts[idx_bg] > 0L)
+  scoring_available <- sum(idx_sc > 0L & nonmiss_counts[idx_sc] > 0L)
 
   # Predictive coverage: importance weighted by non-missing fraction per probe
   importance <- model_data$model_importance_pct[[model_name]]
-  probes_in_imp <- intersect(names(importance), rownames(betas))
-
-  # Fraction present per probe (0 if fully missing)
-  non_missing_fraction <- function(probe) {
-    vals <- betas[probe, , drop = FALSE]
-    1 - (sum(is.na(vals)) / length(vals))
+  imp_names <- names(importance)
+  idx_imp <- match(imp_names, rn, nomatch = 0L)
+  keep <- idx_imp > 0L
+  if (any(keep)) {
+    frac_vec <- nonmiss_counts[idx_imp[keep]] / n_samples
+    coverage_pct <- round(100 * sum(importance[keep] * frac_vec, na.rm = TRUE), 1)
+  } else {
+    coverage_pct <- NA_real_
   }
-
-  frac_vec <- vapply(probes_in_imp, non_missing_fraction, numeric(1))
-  # Weight by importance and sum to percentage (importance sums to 1)
-  coverage_pct <- round(100 * sum(importance[probes_in_imp] * frac_vec, na.rm = TRUE), 1)
 
   # Coverage label
   if (is.na(coverage_pct)) {
