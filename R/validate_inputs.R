@@ -153,13 +153,26 @@
   if (is.data.frame(betas)) betas <- as.matrix(betas)
   scoring_probes <- model_data$model_probes[[model_name]]
   importance <- model_data$model_importance_pct[[model_name]]
-  probes <- intersect(scoring_probes, rownames(betas))
-  if (length(probes) == 0) {
-    return(setNames(rep(0, ncol(betas)), colnames(betas)))
+  
+  # Collapse presence by base ID so suffixes (e.g., _TC/_BC/_orig) don't break matching
+  base_ids <- sub("_.*$", "", rownames(betas))
+  present_counts_by_base <- rowsum((!is.na(betas)) * 1L, group = base_ids, reorder = FALSE)
+  present_by_base <- present_counts_by_base > 0L
+  
+  # Build present matrix aligned to scoring_probes
+  n_samples <- ncol(betas)
+  present <- matrix(FALSE, nrow = length(scoring_probes), ncol = n_samples,
+                    dimnames = list(scoring_probes, colnames(betas)))
+  idx <- match(scoring_probes, rownames(present_by_base), nomatch = 0L)
+  if (any(idx > 0L)) {
+    present[idx > 0L, ] <- present_by_base[idx[idx > 0L], , drop = FALSE]
   }
-  imp_vec <- importance[probes]
-  present <- !is.na(betas[probes, , drop = FALSE])
-  # colSums of importance weights for present probes; importance sums to 1
+  
+  # Importance vector aligned to scoring_probes; importance sums to 1
+  imp_vec <- importance[scoring_probes]
+  imp_vec[is.na(imp_vec)] <- 0
+  
+  # colSums of importance weights for present probes
   coverage <- as.numeric(crossprod(imp_vec, present)) * 100
   names(coverage) <- colnames(betas)
   return(coverage)
