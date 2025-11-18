@@ -56,7 +56,7 @@ FraminghamPACEbProjector = function(betas,
         groups <- base_ids[sel_dup]
 
         sums <- rowsum(betas_dup, groups, na.rm = TRUE)
-        counts <- rowsum(!is.na(betas_dup), groups)
+        counts <- rowsum((!is.na(betas_dup)) * 1L, groups)
         counts_num <- pmax(counts, 1L)
         means <- sums / counts_num
         means[counts == 0] <- NA_real_
