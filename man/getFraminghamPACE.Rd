@@ -11,7 +11,8 @@ getFraminghamPACE(betas, model_type = "FraminghamPACE", ...)
 row names and samples as column names. Missing values should be `NA`.}
 
 \item{model_type}{Character string selecting the model variant. One of
-"FraminghamPACE" (default), "Alternate1", "Alternate2", or "Alternate3".}
+"FraminghamPACE" (default), "Alternate1", "Alternate2", "Alternate3".
+Also "WTM_RIDGE" and "WTM_ENET".}
 
 \item{...}{Optional arguments you can pass to control filtering and outputs:
 - `sample_coverage_min` (numeric; default 0.75): Minimum per-sample predictive

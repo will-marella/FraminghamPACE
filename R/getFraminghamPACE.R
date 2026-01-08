@@ -9,7 +9,8 @@ globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 #' @param betas A numeric matrix of percent-methylation values with probe IDs as
 #'   row names and samples as column names. Missing values should be `NA`.
 #' @param model_type Character string selecting the model variant. One of
-#'   "FraminghamPACE" (default), "Alternate1", "Alternate2", or "Alternate3".
+#'   "FraminghamPACE" (default), "Alternate1", "Alternate2", "Alternate3".
+#'   Also "WTM_RIDGE" and "WTM_ENET".
 #' @param ... Optional arguments you can pass to control filtering and outputs:
 #'   - `sample_coverage_min` (numeric; default 0.75): Minimum per-sample predictive
 #'     coverage required to compute a score. Samples below the threshold are
@@ -73,8 +74,12 @@ getFraminghamPACE <- function(betas, model_type = "FraminghamPACE", ...) {
     FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "ENET", ...)
   } else if (model_type == "Alternate3") {
     FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "ENET", ...)
+  } else if (model_type == "WTM_RIDGE") {
+    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "WTM_RIDGE", ...)
+  } else if (model_type == "WTM_ENET") {
+    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "WTM_ENET", ...)
   } else {
-    stop("Invalid model_type. Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', or 'Alternate3'.")
+    stop("Invalid model_type. Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', 'Alternate3', 'WTM_RIDGE', or 'WTM_ENET'.")
   }
   
   return(FraminghamPACE)

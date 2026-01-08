@@ -1,0 +1,4 @@
+getFraminghamPACE       Compute Framingham Pace of Aging Calculated
+                        from the Epigenome (FraminghamPACE) scores
+getFraminghamPACEProbes
+                        List probes used by FraminghamPACE models

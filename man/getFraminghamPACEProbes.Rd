@@ -10,9 +10,8 @@ getFraminghamPACEProbes(backgroundList = FALSE, model_type = "FraminghamPACE")
 \item{backgroundList}{Logical (default: FALSE). If TRUE, return background
 probes; if FALSE, return scoring probes.}
 
-\item{model_type}{Character string selecting the model variant. One of
-"FraminghamPACE", "Alternate1",
-"Alternate2", or "Alternate3".}
+\item{model_type}{Character string selecting the model variant.
+Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', 'Alternate3', 'WTM_RIDGE', or 'WTM_ENET'.}
 }
 \value{
 A character vector of probe IDs.

@@ -1,6 +1,8 @@
 #' @noRd
 globalVariables("FraminghamPACEa_RIDGE")
 globalVariables("FraminghamPACEa_ENET")
+globalVariables("WTM_FraminghamPACEa_RIDGE")
+globalVariables("WTM_FraminghamPACEa_ENET")
 globalVariables(c(".validate_betas"))
 
 
@@ -25,8 +27,14 @@ FraminghamPACEaProjector = function(betas,
   } else if (model_type == "ENET") {
     data("FraminghamPACEa_ENET", package = "FraminghamPACE")
     model_data <- FraminghamPACEa_ENET
+  } else if (model_type == "WTM_RIDGE") {
+    data("WTM_FraminghamPACEa_RIDGE", package = "FraminghamPACE")
+    model_data <- WTM_FraminghamPACEa_RIDGE
+  } else if (model_type == "WTM_ENET") {
+    data("WTM_FraminghamPACEa_ENET", package = "FraminghamPACE")
+    model_data <- WTM_FraminghamPACEa_ENET
   } else {
-    stop("Invalid model_type. Options are 'RIDGE' or 'ENET'.")
+    stop("Invalid model_type. Options are 'RIDGE', 'ENET', 'WTM_RIDGE', or 'WTM_ENET'.")
   }
   
   # Validate betas
