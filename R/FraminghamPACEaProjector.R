@@ -26,7 +26,7 @@ FraminghamPACEaProjector = function(betas,
     data("WTM_FraminghamPACEa_ENET", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_ENET
   } else {
-    stop("Invalid model_type. Options are 'WTM_RIDGE' or 'WTM_ENET'.")
+    stop("Internal error: invalid model_type '", model_type, "' passed to projector")
   }
   
   # Validate betas
