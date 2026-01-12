@@ -4,15 +4,14 @@
 \alias{getFraminghamPACE}
 \title{Compute Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) scores}
 \usage{
-getFraminghamPACE(betas, model_type = "FraminghamPACE", ...)
+getFraminghamPACE(betas, model_type = "ElasticNet", ...)
 }
 \arguments{
 \item{betas}{A numeric matrix of percent-methylation values with probe IDs as
 row names and samples as column names. Missing values should be `NA`.}
 
 \item{model_type}{Character string selecting the model variant. One of
-"FraminghamPACE" (default), "Alternate1", "Alternate2", "Alternate3".
-Also "WTM_RIDGE" and "WTM_ENET".}
+"Ridge" or "ElasticNet" (default).}
 
 \item{...}{Optional arguments you can pass to control filtering and outputs:
 - `sample_coverage_min` (numeric; default 0.75): Minimum per-sample predictive
@@ -37,8 +36,8 @@ Also "WTM_RIDGE" and "WTM_ENET".}
      percentages) and `threshold` (numeric `sample_coverage_min`)
 }
 \description{
-Computes FraminghamPACE scores for methylation arrays using one of four
-supported model variants. Provide your beta matrix to calculate FraminghamPACE.
+Computes FraminghamPACE scores for methylation arrays using one of two
+supported WTM model variants. Provide your beta matrix to calculate FraminghamPACE.
 }
 \details{
 Predictive coverage reflects the fraction of model signal supported by observed
@@ -59,7 +58,7 @@ scores <- getFraminghamPACE(betas)
 # With a different model, coverage outputs, and a relaxed per-sample coverage threshold
 res <- getFraminghamPACE(
   betas,
-  model_type = "Alternate1",
+  model_type = "Ridge",
   sample_coverage_min = 0.70,
   return_coverage = TRUE,
   return_normalized_betas = FALSE

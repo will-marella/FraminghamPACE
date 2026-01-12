@@ -4,14 +4,14 @@
 \alias{getFraminghamPACEProbes}
 \title{List probes used by FraminghamPACE models}
 \usage{
-getFraminghamPACEProbes(backgroundList = FALSE, model_type = "FraminghamPACE")
+getFraminghamPACEProbes(backgroundList = FALSE, model_type = "ElasticNet")
 }
 \arguments{
 \item{backgroundList}{Logical (default: FALSE). If TRUE, return background
 probes; if FALSE, return scoring probes.}
 
 \item{model_type}{Character string selecting the model variant.
-Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', 'Alternate3', 'WTM_RIDGE', or 'WTM_ENET'.}
+Options are 'Ridge' or 'ElasticNet'.}
 }
 \value{
 A character vector of probe IDs.
@@ -23,6 +23,6 @@ normalization; otherwise, returns the scoring probes only.
 }
 \examples{
 \dontrun{
-probes <- getFraminghamPACEProbes(backgroundList = FALSE, model_type = "FraminghamPACE")
+probes <- getFraminghamPACEProbes(backgroundList = FALSE, model_type = "Ridge")
 }
 }

@@ -1,16 +1,15 @@
 # Preserve global variable declarations (not roxygen)
-globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
+globalVariables(c("FraminghamPACEaProjector"))
 
 #' Compute Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) scores
 #'
-#' Computes FraminghamPACE scores for methylation arrays using one of four
-#' supported model variants. Provide your beta matrix to calculate FraminghamPACE.
+#' Computes FraminghamPACE scores for methylation arrays using one of two
+#' supported WTM model variants. Provide your beta matrix to calculate FraminghamPACE.
 #'
 #' @param betas A numeric matrix of percent-methylation values with probe IDs as
 #'   row names and samples as column names. Missing values should be `NA`.
 #' @param model_type Character string selecting the model variant. One of
-#'   "FraminghamPACE" (default), "Alternate1", "Alternate2", "Alternate3".
-#'   Also "WTM_RIDGE" and "WTM_ENET".
+#'   "Ridge" or "ElasticNet" (default).
 #' @param ... Optional arguments you can pass to control filtering and outputs:
 #'   - `sample_coverage_min` (numeric; default 0.75): Minimum per-sample predictive
 #'     coverage required to compute a score. Samples below the threshold are
@@ -52,7 +51,7 @@ globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 #' # With a different model, coverage outputs, and a relaxed per-sample coverage threshold
 #' res <- getFraminghamPACE(
 #'   betas,
-#'   model_type = "Alternate1",
+#'   model_type = "Ridge",
 #'   sample_coverage_min = 0.70,
 #'   return_coverage = TRUE,
 #'   return_normalized_betas = FALSE
@@ -63,23 +62,15 @@ globalVariables(c("FraminghamPACEaProjector", "FraminghamPACEbProjector"))
 #' }
 #'
 #' @export
-getFraminghamPACE <- function(betas, model_type = "FraminghamPACE", ...) {
+getFraminghamPACE <- function(betas, model_type = "ElasticNet", ...) {
   
   # Run the projector for the given model type
-  if (model_type == "FraminghamPACE") {
-    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "RIDGE", ...)
-  } else if (model_type == "Alternate1") {
-    FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "RIDGE", ...)
-  } else if (model_type == "Alternate2") {
-    FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "ENET", ...)
-  } else if (model_type == "Alternate3") {
-    FraminghamPACE <- FraminghamPACEbProjector(betas, model_type = "ENET", ...)
-  } else if (model_type == "WTM_RIDGE") {
+  if (model_type == "Ridge") {
     FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "WTM_RIDGE", ...)
-  } else if (model_type == "WTM_ENET") {
+  } else if (model_type == "ElasticNet") {
     FraminghamPACE <- FraminghamPACEaProjector(betas, model_type = "WTM_ENET", ...)
   } else {
-    stop("Invalid model_type. Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', 'Alternate3', 'WTM_RIDGE', or 'WTM_ENET'.")
+    stop("Invalid model_type. Options are 'Ridge' or 'ElasticNet'.")
   }
   
   return(FraminghamPACE)

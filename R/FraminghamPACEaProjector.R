@@ -1,6 +1,4 @@
 #' @noRd
-globalVariables("FraminghamPACEa_RIDGE")
-globalVariables("FraminghamPACEa_ENET")
 globalVariables("WTM_FraminghamPACEa_RIDGE")
 globalVariables("WTM_FraminghamPACEa_ENET")
 globalVariables(c(".validate_betas"))
@@ -21,20 +19,14 @@ FraminghamPACEaProjector = function(betas,
   time_stage <- function(label, expr) .with_timing(label, expr, timing)
   
   # Load the appropriate model based on model_type
-  if (model_type == "RIDGE") {
-    data("FraminghamPACEa_RIDGE", package = "FraminghamPACE")
-    model_data <- FraminghamPACEa_RIDGE
-  } else if (model_type == "ENET") {
-    data("FraminghamPACEa_ENET", package = "FraminghamPACE")
-    model_data <- FraminghamPACEa_ENET
-  } else if (model_type == "WTM_RIDGE") {
+  if (model_type == "WTM_RIDGE") {
     data("WTM_FraminghamPACEa_RIDGE", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_RIDGE
   } else if (model_type == "WTM_ENET") {
     data("WTM_FraminghamPACEa_ENET", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_ENET
   } else {
-    stop("Invalid model_type. Options are 'RIDGE', 'ENET', 'WTM_RIDGE', or 'WTM_ENET'.")
+    stop("Invalid model_type. Options are 'WTM_RIDGE' or 'WTM_ENET'.")
   }
   
   # Validate betas

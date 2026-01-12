@@ -7,36 +7,24 @@
 #' @param backgroundList Logical (default: FALSE). If TRUE, return background
 #'   probes; if FALSE, return scoring probes.
 #' @param model_type Character string selecting the model variant.
-#'   Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', 'Alternate3', 'WTM_RIDGE', or 'WTM_ENET'.
+#'   Options are 'Ridge' or 'ElasticNet'.
 #'
 #' @return A character vector of probe IDs.
 #' @examples
 #' \dontrun{
-#' probes <- getFraminghamPACEProbes(backgroundList = FALSE, model_type = "FraminghamPACE")
+#' probes <- getFraminghamPACEProbes(backgroundList = FALSE, model_type = "Ridge")
 #' }
 #' @importFrom utils data
 #' @export
-getFraminghamPACEProbes = function(backgroundList = FALSE, model_type = "FraminghamPACE") {
-  if (model_type == "FraminghamPACE") {
-    data("FraminghamPACEa_RIDGE", package = "FraminghamPACE")
-    model_data <- FraminghamPACEa_RIDGE
-  } else if (model_type == "Alternate1") {
-    data("FraminghamPACEb_RIDGE", package = "FraminghamPACE")
-    model_data <- FraminghamPACEb_RIDGE
-  } else if (model_type == "Alternate2") {
-    data("FraminghamPACEa_ENET", package = "FraminghamPACE")
-    model_data <- FraminghamPACEa_ENET
-  } else if (model_type == "WTM_RIDGE") {
+getFraminghamPACEProbes = function(backgroundList = FALSE, model_type = "ElasticNet") {
+  if (model_type == "Ridge") {
     data("WTM_FraminghamPACEa_RIDGE", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_RIDGE
-  } else if (model_type == "WTM_ENET") {
+  } else if (model_type == "ElasticNet") {
     data("WTM_FraminghamPACEa_ENET", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_ENET
-  } else if (model_type == "Alternate3") {
-    data("FraminghamPACEb_ENET", package = "FraminghamPACE")
-    model_data <- FraminghamPACEb_ENET
   } else {
-    stop("Invalid model_type. Options are 'FraminghamPACE', 'Alternate1', 'Alternate2', 'Alternate3', 'WTM_RIDGE', or 'WTM_ENET'.")
+    stop("Invalid model_type. Options are 'Ridge' or 'ElasticNet'.")
   }
   model_name <- model_data$model_names[1]
   if (isFALSE(backgroundList)) {
