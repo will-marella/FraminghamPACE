@@ -1,4 +1,17 @@
+**Important Notice: Research Use Only**
+
+FraminghamPACE is licensed for non-commercial academic research use only under
+the FraminghamPACE Non-Commercial Research Use License (see the LICENSE file).
+It is NOT open-source software and is NOT licensed for commercial use.
+Commercial use, including any clinical, diagnostic, or fee-based testing,
+scoring, or reporting, requires a separate written license; contact Columbia
+Technology Ventures at techventures@columbia.edu. FraminghamPACE is the subject of
+pending patent applications. No patent or trademark rights are granted by
+publication of this code. For research use only. Not for use in diagnostic
+procedures.
+
 ## FraminghamPACE
+
 FraminghamPACE is an R package for computing the Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) from DNA methylation arrays. Provide a matrix of methylation beta values, with rows as CpG probes and columns as samples, and the package returns PACE estimates. The algorithm supports Illumina 450k, EPIC, EPIC v2, and MSA arrays.
 
 The package estimates FraminghamPACE and three closely related model variants. These alternate versions ('Alternate1', 'Alternate2', 'Alternate3') were trained with slightly different feature sets and/or modeling approaches, and provide a sensitivity analysis for our overall approach. See (Paper supplement TBD) for more information.

@@ -352,183 +352,206 @@ display: none;
 </div>
 
 
-<div id="framinghampace" class="section level1">
-<h1>FraminghamPACE</h1>
-<p>The FraminghamPACE R package allows users to calculate FraminghamPACE
-in their own DNA methylation dataset. Given a set of methylation beta
-values, where rows are probes and columns are subjects, this tool will
-produce FraminghamPACE. The algorithm works on data produced by the
-Illumina 450k, EPIC, EPIC V2, and MSA arrays.</p>
-<p>There are two FraminghamPACE estimates, FraminghamPACEa and
-FraminghamPACEb. FraminghamPACEa was trained with age and sex included
-as additional covariates, whereas FraminghamPACEb was trained solely on
-CpGs. The methods perform very similarly across domains. Both are
-predicted with this package.</p>
+<p><strong>Important Notice: Research Use Only</strong></p>
+<p>FraminghamPACE is licensed for non-commercial academic research use
+only under the FraminghamPACE Non-Commercial Research Use License (see
+the LICENSE file). It is NOT open-source software and is NOT licensed
+for commercial use. Commercial use, including any clinical, diagnostic,
+or fee-based testing, scoring, or reporting, requires a separate written
+license; contact Columbia Technology Ventures at <a href="mailto:techventures@columbia.edu" class="email">techventures@columbia.edu</a>. FraminghamPACE is the
+subject of pending patent applications. No patent or trademark rights
+are granted by publication of this code. For research use only. Not for
+use in diagnostic procedures.</p>
+<div id="framinghampace" class="section level2">
+<h2>FraminghamPACE</h2>
+<p>FraminghamPACE is an R package for computing the Framingham Pace of
+Aging Calculated from the Epigenome (FraminghamPACE) from DNA
+methylation arrays. Provide a matrix of methylation beta values, with
+rows as CpG probes and columns as samples, and the package returns PACE
+estimates. The algorithm supports Illumina 450k, EPIC, EPIC v2, and MSA
+arrays.</p>
+<p>The package estimates FraminghamPACE and three closely related model
+variants. These alternate versions (‘Alternate1’, ‘Alternate2’,
+‘Alternate3’) were trained with slightly different feature sets and/or
+modeling approaches, and provide a sensitivity analysis for our overall
+approach. See (Paper supplement TBD) for more information.</p>
+</div>
 <div id="installation-via-devtools" class="section level2">
-<h2>Installation (via devtools):</h2>
-<p>To install and load FraminghamPACE, use the following code:</p>
+<h2>Installation (via devtools)</h2>
+<p>To install and load FraminghamPACE:</p>
 <pre class="r"><code>devtools::install_github(&quot;will-marella/FraminghamPACE&quot;)
-
 library(FraminghamPACE)</code></pre>
 </div>
 <div id="use" class="section level2">
 <h2>Use</h2>
-<p>The primary functions in the FraminghamPACE package are the
-PACEProjector functions. There are two PACEProjectors:
-<code>FraminghamPACEaProjector()</code> and
-<code>FraminghamPACEbProjector()</code> for FraminghamPACEa and b,
-respectively. Helper windows are available for all functions via
-<code>?</code>, i.e. <code>?FraminghamPACEaProjector</code>.</p>
-<p>The PACEProjector functions calculate FraminghamPACE for the provided
-dataset. We recommend loading a beta matrix containing <em>all
-available</em> CpGs. For MSA array data, the “MSA” option must be
-selected via the <code>model_type</code> argument.</p>
-<p>If it is preferred to load only the probes used for model fitting or
-background normalization, the CpGs are accessible via the
-<code>getFraminghamPACEaProbes()</code> and
-<code>getFraminghamPACEbProbes()</code> functions.</p>
+<p>The primary function is <code>getFraminghamPACE()</code>, which
+calculates FraminghamPACE for your dataset. Help is available via
+<code>?getFraminghamPACE</code>.</p>
+<p>To retrieve the CpGs used by the models (either scoring probes or the
+larger background set for normalization), use
+<code>getFraminghamPACEProbes()</code>. For best estimates when
+calculating FraminghamPACE, we recommend providing a beta matrix
+containing all available CpGs.</p>
+<hr />
 </div>
-<div id="framinghampaceaprojector" class="section level2">
-<h2>FraminghamPACEaProjector():</h2>
-<div id="inputs" class="section level4">
-<h4>Inputs:</h4>
-<div id="betas" class="section level6">
-<h6>betas</h6>
-<p>A numeric matrix containing the percent-methylation for each probe.
-Missing data should be ’NA’s. The rows should be probes, with the probe
-IDs as the row names, and the columns should be samples, with sample
-names as the column names.</p>
+<div id="getframinghampace" class="section level2">
+<h2>getFraminghamPACE()</h2>
+<div id="arguments" class="section level3">
+<h3>Arguments</h3>
+<ul>
+<li><p><strong>betas (input matrix)</strong>: Numeric matrix of
+methylation beta values representing the proportion methylated (0–1) at
+each CpG. Rows are CpG probe IDs (<code>cg...</code>) and columns are
+samples. Missing values should be <code>NA</code>.</p>
+<ul>
+<li>Column names (sample names) and row names (probe IDs) must be
+unique.</li>
+<li>Data frames are accepted and converted to a numeric matrix
+internally.</li>
+<li>Replicate probes are handled automatically (see <a href="#replicates">Replicates</a>).</li>
+</ul></li>
+<li><p><strong>model_type</strong>: Which variant to compute. One of
+<code>&quot;FraminghamPACE&quot;</code> (default), <code>&quot;Alternate1&quot;</code>,
+<code>&quot;Alternate2&quot;</code>, or <code>&quot;Alternate3&quot;</code>.</p></li>
+<li><p><strong>sample_coverage_min</strong>: Minimum per-sample
+predictive coverage required to compute a score. Samples below this
+threshold are kept in the result but their score is set to
+<code>NA</code>. This filter is applied before normalization and model
+scoring; see <a href="#predictive-coverage">Predictive coverage</a> for
+details. Default: <code>0.75</code> (i.e., 75%).</p></li>
+<li><p><strong>return_coverage</strong>: If <code>TRUE</code>, also
+return per-sample predictive coverage percentages and the threshold
+used. Default: <code>FALSE</code>.</p></li>
+<li><p><strong>return_normalized_betas</strong>: If <code>TRUE</code>,
+also return the quantile-normalized beta matrix used for scoring.
+Default: <code>FALSE</code>.</p></li>
+</ul>
 </div>
-<div id="age_sex_df" class="section level6">
-<h6>age_sex_df</h6>
-<p>A numeric dataframe containing the age and sex values for each
-sample. The name of the age column should be ‘Age’ and the name of the
-sex column should be ‘Female’, where a 1 indicates the sample is female
-and 0 indicates the sample is male. The row names should indicate the
-sample, matching the column names of the ‘betas’ matrix.</p>
+<div id="output" class="section level3">
+<h3>Output</h3>
+<ul>
+<li><strong>Default</strong>: A data frame of PACE scores with sample
+names as row names and the model name as the single column.</li>
+<li><strong>If <code>return_coverage = TRUE</code></strong>: The
+function returns a list with:
+<ul>
+<li><code>pace_score</code>: as above</li>
+<li><code>coverage$sample</code>: named numeric vector of per-sample
+coverage percentages (0–100)</li>
+<li><code>coverage$threshold</code>: numeric value of
+<code>sample_coverage_min</code></li>
+</ul></li>
+<li><strong>If <code>return_normalized_betas = TRUE</code></strong>: The
+list includes:
+<ul>
+<li><code>normalized_betas</code>: the quantile-normalized beta matrix
+used in scoring (or <code>NULL</code> if <code>FALSE</code>)</li>
+</ul></li>
+<li><strong>If both are TRUE</strong>: You receive both coverage and
+normalized betas in the list alongside <code>pace_score</code>.</li>
+</ul>
 </div>
-<div id="proportionofprobesrequired" class="section level6">
-<h6>proportionOfProbesRequired:</h6>
-<p>(default: 0.8) The proportion of probes required to have a
-non-missing value for FraminghamPACE for a sample, as well as to
-determine if we can impute the mean from the current cohort. Note: if
-the function detects EPICv2 data based on row names that contain the
-replicate suffix, the proportion of probes required will automatically
-be lowered to 0.7.</p>
+<div id="predictive-coverage" class="section level3">
+<h3>Predictive coverage</h3>
+<p>Predictive coverage quantifies how much of the model’s weighted
+signal is supported by observed (non‑missing) scoring probes in your
+data. Each scoring probe has an importance weight <span class="math inline">\(w_i\)</span> proportional to its fitted model
+coefficient multiplied by its standard deviation in the training data;
+weights are normalized so that <span class="math inline">\(\sum_i w_i =
+1\)</span>.</p>
+<p>Per‑sample predictive coverage for sample <span class="math inline">\(s\)</span> is:</p>
+<pre class="math"><code>\mathrm{coverage}_s = 100 \times \sum_i w_i\, I_{is}</code></pre>
+<p>where <span class="math inline">\(I_{is}=1\)</span> if probe <span class="math inline">\(i\)</span> is observed (non‑missing) in sample
+<span class="math inline">\(s\)</span>, and 0 otherwise. Because the
+weights sum to 1, per‑sample coverage ranges from 0 to 100.</p>
+<p>After filtering out low‑coverage samples (see
+<code>sample_coverage_min</code>), dataset‑level predictive coverage is
+computed on the kept samples. Let <span class="math inline">\(m_i\)</span> be the fraction of kept samples in
+which probe <span class="math inline">\(i\)</span> is observed
+(non‑missing). Then</p>
+<pre class="math"><code>\mathrm{coverage}_{\mathrm{dataset}} = 100 \times \sum_i w_i\, m_i</code></pre>
+<p>We label this as Good (&gt;90%), Moderate (&gt;75%), or Poor (≤75%),
+and also report counts of background and scoring probes detected in your
+input.</p>
+<p>When you run <code>getFraminghamPACE()</code>, the function reports
+how many samples meet <code>sample_coverage_min</code>, excludes
+lower‑coverage samples from normalization and scoring, and then prints
+the dataset‑level coverage summary and probe counts described above.</p>
+<blockquote>
+<p>[!IMPORTANT] <strong>Reporting:</strong> Please report the
+dataset‑level predictive coverage alongside any PACE results.</p>
+</blockquote>
 </div>
-<div id="model_type" class="section level6">
-<h6>model_type:</h6>
-<p>(default: “default”) Choose which model to use. Options are “default”
-for the original model or “MSA” for the alternative MSA model.</p>
+<div id="per-sample-filtering" class="section level3">
+<h3>Per-sample filtering</h3>
+<p>Samples with coverage below <code>sample_coverage_min</code> have
+their scores set to <code>NA</code> and are excluded from normalization
+and model fitting. You can relax or tighten this threshold (e.g.,
+<code>sample_coverage_min = 0.70</code>). Messages report how many
+samples remain and a brief predictive coverage summary.</p>
 </div>
+<div id="returning-coverage-and-normalized-betas" class="section level3">
+<h3>Returning coverage and normalized betas</h3>
+<p>If you set <code>return_coverage = TRUE</code>, the output includes
+<code>coverage$sample</code> (per-sample coverage percentages) and
+<code>coverage$threshold</code>. If you set
+<code>return_normalized_betas = TRUE</code>, the output includes
+<code>normalized_betas</code> (the quantile-normalized beta matrix used
+for scoring). If both are <code>TRUE</code>, both are returned.</p>
 </div>
-<div id="output" class="section level4">
-<h4>Output:</h4>
-<p>By default, a dataframe of FraminghamPACEa values with sample names
-as row names and the model name as the column name. If
-return_normalized_betas=TRUE, a list containing both the pace value
-dataframe and the normalized_betas matrix.</p>
+<div id="replicates" class="section level3">
+<h3>Replicates</h3>
+<p>In newer platforms (e.g., EPICv2), replicate probes can appear, with
+a suffix that may include strand (T/B), original or bisulfite-converted
+strand (C/O), probe type (I/II), and replicate index (1–10). For the
+calculation of FraminghamPACE these replicates are automatically
+averaged prior to scoring. Replicates are identified by a shared core
+probe ID with replicate-specific suffixes; these are collapsed to the
+core ID before normalization and scoring.</p>
 </div>
-</div>
-<div id="framinghampacebprojector" class="section level2">
-<h2>FraminghamPACEbProjector():</h2>
-<div id="inputs-1" class="section level4">
-<h4>Inputs:</h4>
-<div id="betas-1" class="section level6">
-<h6>betas</h6>
-<p>A numeric matrix containing the percent-methylation for each probe.
-Missing data should be ’NA’s. The rows should be probes, with the probe
-IDs as the row names, and the columns should be samples, with sample
-names as the column names.</p>
-</div>
-<div id="proportionofprobesrequired-1" class="section level6">
-<h6>proportionOfProbesRequired:</h6>
-<p>(default: 0.8) The proportion of probes required to have a
-non-missing value for FraminghamPACE for a sample, as well as to
-determine if we can impute the mean from the current cohort. Note: if
-the function detects EPICv2 data based on row names that contain the
-replicate suffix, the proportion of probes required will automatically
-be lowered to 0.7.</p>
-</div>
-<div id="model_type-1" class="section level6">
-<h6>model_type:</h6>
-<p>(default: “default”) Choose which model to use. Options are “default”
-for the original model or “MSA” for the alternative MSA model.</p>
-</div>
-</div>
-<div id="output-1" class="section level4">
-<h4>Output:</h4>
-<p>By default, a dataframe of FraminghamPACEb values with sample names
-as row names and the model name as the column name. If
-return_normalized_betas=TRUE, a list containing both the pace value
-dataframe and the normalized_betas matrix.</p>
-</div>
-</div>
-<div id="example-usage" class="section level2">
-<h2>Example Usage</h2>
-<pre class="r"><code># Load in beta matrix
+<div id="example" class="section level3">
+<h3>Example</h3>
+<pre class="r"><code># Load beta matrix (proportion methylated, rows = probes, cols = samples)
 my_betas &lt;- read.csv(&quot;preprocessed_beta_matrix_or_dataframe.csv&quot;)
 
-# Load in age and sex dataframe (for FraminghamPACEa)
-my_age_sex_df &lt;- read.csv(&quot;demographics.csv&quot;)
+# Compute FraminghamPACE (default model)
+scores &lt;- getFraminghamPACE(betas = my_betas)
 
-# Run FraminghamPACEa
-FraminghamPACEa &lt;- FraminghamPACEaProjector(betas = my_betas, 
-                                            age_sex_df = my_age_sex_df, 
-                                            model_type = &quot;default&quot;)
-
-# Run FraminghamPACEb
-FraminghamPACEb &lt;- FraminghamPACEbProjector(betas = my_betas, 
-                                            model_type = &quot;default&quot;)
-                                            
-# NOTE: If your dataset is MSA, use model_type = &quot;MSA&quot;
-</code></pre>
-</div>
-<div id="getframinghampaceaprobes" class="section level2">
-<h2>getFraminghamPACEaProbes():</h2>
-<div id="inputs-2" class="section level4">
-<h4>Inputs:</h4>
-<div id="backgroundlist" class="section level6">
-<h6>backgroundList</h6>
-<p>(default: FALSE) If set to TRUE, it will return the full set of
-~20,000 probes (~10,000 if MSA is selected) in the background set used
-for normalization.</p>
-</div>
-<div id="model_type-2" class="section level6">
-<h6>model_type:</h6>
-<p>(default: “default”) Choose which model to use. Options are “default”
-for the original model or “MSA” for the alternative MSA model.</p>
+# Example with an alternate model, relaxed coverage, and coverage output
+result &lt;- getFraminghamPACE(
+  betas = my_betas,
+  model_type = &quot;Alternate1&quot;,
+  sample_coverage_min = 0.70,
+  return_coverage = TRUE,
+  return_normalized_betas = FALSE
+)
+result$pace_score            # data.frame of scores
+head(result$coverage$sample) # per-sample predictive coverage (%)
+result$coverage$threshold    # threshold used</code></pre>
+<hr />
 </div>
 </div>
-<div id="output-2" class="section level4">
-<h4>Output:</h4>
-<p>A vector of the CpGs used for FraminghamPACEa predictions. Or, if
-backgroundList is set to true, a vector of the CpGs in the background
-set used for normalization.</p>
+<div id="getframinghampaceprobes" class="section level2">
+<h2>getFraminghamPACEProbes()</h2>
+<div id="arguments-1" class="section level3">
+<h3>Arguments</h3>
+<ul>
+<li><strong>backgroundList</strong>: Logical. If <code>TRUE</code>,
+return the full set of background probes used for normalization (~15k
+CpGs). If <code>FALSE</code> (default), return only the scoring probes
+used for PACE predictions.</li>
+<li><strong>model_type</strong>: One of <code>&quot;FraminghamPACE&quot;</code>
+(primary), <code>&quot;Alternate1&quot;</code>, <code>&quot;Alternate2&quot;</code>, or
+<code>&quot;Alternate3&quot;</code>.</li>
+</ul>
 </div>
-</div>
-<div id="getframinghampacebprobes" class="section level2">
-<h2>getFraminghamPACEbProbes():</h2>
-<div id="inputs-3" class="section level4">
-<h4>Inputs:</h4>
-<div id="backgroundlist-1" class="section level6">
-<h6>backgroundList</h6>
-<p>(default: FALSE) If set to TRUE, it will return the full set of
-~20,000 probes (~10,000 if MSA is selected) in the background set used
-for normalization.</p>
-</div>
-<div id="model_type-3" class="section level6">
-<h6>model_type:</h6>
-<p>(default: “default”) Choose which model to use. Options are “default”
-for the original model or “MSA” for the alternative MSA model.</p>
-</div>
-</div>
-<div id="output-3" class="section level4">
-<h4>Output:</h4>
-<p>A vector of the CpGs used for FraminghamPACEb predictions. Or, if
-backgroundList is set to true, a vector of the CpGs in the background
-set used for normalization.</p>
-</div>
+<div id="output-1" class="section level3">
+<h3>Output</h3>
+<ul>
+<li>A character vector of CpG probe IDs. When
+<code>backgroundList = TRUE</code>, returns the background set;
+otherwise, returns the scoring set for the selected model.</li>
+</ul>
 </div>
 </div>
 
