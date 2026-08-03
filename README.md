@@ -14,12 +14,19 @@ procedures.
 
 FraminghamPACE is an R package for computing the Framingham Pace of Aging Calculated from the Epigenome (FraminghamPACE) from DNA methylation arrays. Provide a matrix of methylation beta values, with rows as CpG probes and columns as samples, and the package returns PACE estimates. The algorithm supports Illumina 450k, EPIC, EPIC v2, and MSA arrays.
 
-The package estimates FraminghamPACE and three closely related model variants. These alternate versions ('Alternate1', 'Alternate2', 'Alternate3') were trained with slightly different feature sets and/or modeling approaches, and provide a sensitivity analysis for our overall approach. See (Paper supplement TBD) for more information.
+The package provides two model variants: "ElasticNet" (default), the primary FraminghamPACE model, and "Ridge", a ridge-regression sensitivity-analysis model. Methods and validation are described in An epigenetic speedometer to measure Pace of Aging: FraminghamPACE (https://www.medrxiv.org/content/10.64898/2026.07.07.26357388v2).
 
 ## Installation (via devtools)
 To install and load FraminghamPACE:
 ```r
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install("preprocessCore")
+
 devtools::install_github("will-marella/FraminghamPACE")
+
 library(FraminghamPACE)
 ```
 
@@ -38,7 +45,7 @@ To retrieve the CpGs used by the models (either scoring probes or the larger bac
   - Data frames are accepted and converted to a numeric matrix internally.
   - Replicate probes are handled automatically (see [Replicates](#replicates)).
 
-- **model_type**: Which variant to compute. One of `"FraminghamPACE"` (default), `"Alternate1"`, `"Alternate2"`, or `"Alternate3"`.
+- **model_type**: Which model to compute. One of `"ElasticNet"` (default) or `"Ridge"`.
 
 - **sample_coverage_min**: Minimum per-sample predictive coverage required to compute a score. Samples below this threshold are kept in the result but their score is set to `NA`. This filter is applied before normalization and model scoring; see [Predictive coverage](#predictive-coverage) for details. Default: `0.75` (i.e., 75%).
 
@@ -77,7 +84,7 @@ When you run `getFraminghamPACE()`, the function reports how many samples meet `
 > **Reporting:** Please report the dataset‑level predictive coverage alongside any PACE results.
 
 ### Per-sample filtering
-Samples with coverage below `sample_coverage_min` have their scores set to `NA` and are excluded from normalization and model fitting. You can relax or tighten this threshold (e.g., `sample_coverage_min = 0.70`). Messages report how many samples remain and a brief predictive coverage summary.
+Samples with coverage below `sample_coverage_min` have their scores set to `NA` and are excluded from normalization and scoring. You can relax or tighten this threshold (e.g., `sample_coverage_min = 0.70`). Messages report how many samples remain and a brief predictive coverage summary.
 
 ### Returning coverage and normalized betas
 If you set `return_coverage = TRUE`, the output includes `coverage$sample` (per-sample coverage percentages) and `coverage$threshold`. If you set `return_normalized_betas = TRUE`, the output includes `normalized_betas` (the quantile-normalized beta matrix used for scoring). If both are `TRUE`, both are returned.
@@ -93,10 +100,10 @@ my_betas <- read.csv("preprocessed_beta_matrix_or_dataframe.csv")
 # Compute FraminghamPACE (default model)
 scores <- getFraminghamPACE(betas = my_betas)
 
-# Example with an alternate model, relaxed coverage, and coverage output
+# Example with the Ridge model, relaxed coverage, and coverage output
 result <- getFraminghamPACE(
   betas = my_betas,
-  model_type = "Alternate1",
+  model_type = "Ridge",
   sample_coverage_min = 0.70,
   return_coverage = TRUE,
   return_normalized_betas = FALSE
@@ -112,7 +119,11 @@ result$coverage$threshold    # threshold used
 
 ### Arguments
 - **backgroundList**: Logical. If `TRUE`, return the full set of background probes used for normalization (~15k CpGs). If `FALSE` (default), return only the scoring probes used for PACE predictions.
-- **model_type**: One of `"FraminghamPACE"` (primary), `"Alternate1"`, `"Alternate2"`, or `"Alternate3"`.
+- **model_type**: One of `"ElasticNet"` (default) or `"Ridge"`.
 
 ### Output
 - A character vector of CpG probe IDs. When `backgroundList = TRUE`, returns the background set; otherwise, returns the scoring set for the selected model.
+
+## Citation
+
+Marella WT, Ryan CP, Corcoran D, Eckstein Indik C, Furuya A, Kobor MS, Sugden K, Caspi A, Moffitt TE, and Belsky DW. An epigenetic speedometer to measure Pace of Aging: FraminghamPACE. medRxiv. 2026. doi:10.64898/2026.07.07.26357388.
