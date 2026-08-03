@@ -4,3 +4,5 @@
 .Ruserdata
 /FraminghamPACE.Rcheck
 inst/doc
+.DS_Store
+R/.Rapp.history
