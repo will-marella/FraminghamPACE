@@ -54,7 +54,7 @@ To retrieve the CpGs used by the models (either scoring probes or the larger bac
 - **return_normalized_betas**: If `TRUE`, also return the quantile-normalized beta matrix used for scoring. Default: `FALSE`.
 
 ### Output
-- **Default**: A data frame of PACE scores with sample names as row names and the model name as the single column.
+- **Default**: A data frame of PACE scores with sample names as row names and the selected model type (`"ElasticNet"` or `"Ridge"`) as the single column name.
 - **If `return_coverage = TRUE`**: The function returns a list with:
   - `pace_score`: as above
   - `coverage$sample`: named numeric vector of per-sample coverage percentages (0–100)

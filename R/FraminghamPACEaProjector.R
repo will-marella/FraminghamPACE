@@ -22,9 +22,11 @@ FraminghamPACEaProjector = function(betas,
   if (model_type == "WTM_RIDGE") {
     data("WTM_FraminghamPACEa_RIDGE", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_RIDGE
+    output_name <- "Ridge"
   } else if (model_type == "WTM_ENET") {
     data("WTM_FraminghamPACEa_ENET", package = "FraminghamPACE")
     model_data <- WTM_FraminghamPACEa_ENET
+    output_name <- "ElasticNet"
   } else {
     stop("Internal error: invalid model_type '", model_type, "' passed to projector")
   }
@@ -101,7 +103,7 @@ FraminghamPACEaProjector = function(betas,
     names(result) <- colnames(betas)
     
     pace_result <- data.frame(result)
-    colnames(pace_result) <- model_name
+    colnames(pace_result) <- output_name
     rownames(pace_result) <- colnames(betas)
     
     cat("WARNING: Empty beta matrix after removing low-coverage samples\n")
@@ -180,7 +182,7 @@ FraminghamPACEaProjector = function(betas,
   score <- score[colnames(betas)]
   
   pace_result <- data.frame(score)
-  colnames(pace_result) <- model_name
+  colnames(pace_result) <- output_name
   
   if(return_normalized_betas || return_coverage) {
     return(list(
