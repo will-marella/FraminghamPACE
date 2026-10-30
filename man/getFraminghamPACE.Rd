@@ -28,7 +28,7 @@ row names and samples as column names. Missing values should be `NA`.}
 \value{
 - If `return_coverage = FALSE` and `return_normalized_betas = FALSE`:
   a data frame of FraminghamPACE scores with sample names as row names and the
-  model name as the single column.
+  selected model type (`"ElasticNet"` or `"Ridge"`) as the single column name.
 - Otherwise: a list with elements
   - `pace_score`: data frame of scores (as above)
   - `normalized_betas`: matrix or `NULL` depending on `return_normalized_betas`
